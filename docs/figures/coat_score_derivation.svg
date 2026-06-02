@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="920" viewBox="0 0 1700 920">
+  <defs>
+    <style>
+      .title { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 34px; font-weight: 800; fill: #0f172a; }
+      .note { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #475569; }
+      .h { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 22px; font-weight: 800; fill: #111827; }
+      .m { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #1f2937; }
+      .s { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 14px; fill: #475569; }
+      .formula { font-family: "Consolas", "Noto Sans SC", monospace; font-size: 16px; fill: #334155; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 18; }
+      .blue { fill: #eff6ff; stroke: #2563eb; }
+      .teal { fill: #f0fdfa; stroke: #0f766e; }
+      .orange { fill: #fff7ed; stroke: #ea580c; }
+      .purple { fill: #faf5ff; stroke: #7e22ce; }
+      .red { fill: #fef2f2; stroke: #dc2626; }
+      .arrow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .soft { stroke: #94a3b8; stroke-width: 2; fill: none; marker-end: url(#arrow2); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#334155"/></marker>
+    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1,1 L9,5 L1,9 Z" fill="#94a3b8"/></marker>
+  </defs>
+  <rect width="1700" height="920" fill="#ffffff"/>
+  <text class="title" x="60" y="58">图 2：对象异常分数 s_i(t) 如何得到</text>
+  <text class="note" x="60" y="90">目标：让 s_i(t) 表示对象 token group 对异常判断的语义贡献，并作为 token 压缩的主参考指标。</text>
+
+  <rect class="panel blue" x="70" y="160" width="350" height="250"/>
+  <text class="h" x="130" y="200">对象上下文表示</text>
+  <text class="formula" x="105" y="245">F_i(t) = [z_i(t), h_i(t), c_i(t), r_i(t)]</text>
+  <text class="m" x="105" y="285">来自上一张图的四类语义</text>
+  <text class="s" x="105" y="320">当前对象 / 历史轨迹 / 局部背景 / 交互关系</text>
+
+  <rect class="panel purple" x="70" y="500" width="350" height="210"/>
+  <text class="h" x="125" y="540">异常语义 Query</text>
+  <text class="formula" x="105" y="585">q = {q_motion, q_scene,</text>
+  <text class="formula" x="145" y="615">q_interaction, q_static}</text>
+  <text class="s" x="105" y="650">可学习 query，可用文本语义初始化</text>
+  <text class="s" x="105" y="678">作用：询问对象上下文是否异常相关</text>
+
+  <path class="arrow" d="M435 280 H540"/>
+  <path class="arrow" d="M435 600 H540"/>
+
+  <rect class="panel teal" x="555" y="260" width="395" height="270"/>
+  <text class="h" x="665" y="303">UtilityHead</text>
+  <text class="formula" x="610" y="350">a_i(t) = CrossAttn(q, F_i(t))</text>
+  <text class="formula" x="610" y="390">s_i(t) = sigmoid(MLP(a_i(t)))</text>
+  <line x1="610" y1="425" x2="895" y2="425" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="m" x="610" y="462">输出：对象异常分数</text>
+  <text class="h" x="705" y="500">s_i(t) ∈ [0,1]</text>
+
+  <path class="arrow" d="M965 395 H1060"/>
+
+  <rect class="panel orange" x="1075" y="155" width="610" height="570"/>
+  <text class="h" x="1260" y="198">训练对象异常分数</text>
+  <text class="m" x="1125" y="242">我们不把 s_i(t) 写成手工规则，而用弱监督学习：</text>
+
+  <rect class="panel" x="1125" y="280" width="250" height="130"/>
+  <text class="h" x="1185" y="315">帧级 MIL</text>
+  <text class="formula" x="1150" y="352">S_frame(t)=max_i s_i(t)</text>
+  <text class="s" x="1150" y="382">异常帧至少一个对象高分</text>
+
+  <rect class="panel" x="1420" y="280" width="245" height="130"/>
+  <text class="h" x="1460" y="315">Mask overlap</text>
+  <text class="formula" x="1440" y="352">m_i=area(box∩mask)/area(box)</text>
+  <text class="s" x="1440" y="382">生成对象级弱标签</text>
+
+  <rect class="panel" x="1125" y="455" width="250" height="130"/>
+  <text class="h" x="1192" y="490">Ranking</text>
+  <text class="formula" x="1150" y="527">s_pos > s_neg + margin</text>
+  <text class="s" x="1150" y="557">更关注保留/删除排序</text>
+
+  <rect class="panel" x="1420" y="455" width="245" height="130"/>
+  <text class="h" x="1495" y="490">Budget</text>
+  <text class="formula" x="1440" y="527">mean(retention) ≈ target</text>
+  <text class="s" x="1440" y="557">防止所有对象都高分</text>
+
+  <text class="formula" x="1130" y="660">L = L_MIL + λ1 L_mask + λ2 L_rank + λ3 L_budget</text>
+
+  <rect class="panel red" x="555" y="620" width="395" height="145"/>
+  <text class="h" x="630" y="660">可选：反事实贡献</text>
+  <text class="formula" x="590" y="700">d_i(t)=S_original - S_without_i</text>
+  <text class="s" x="590" y="730">删除对象 token 后异常分数下降越多，说明该对象越重要</text>
+  <path class="soft" d="M755 620 V540"/>
+
+  <text class="note" x="60" y="835">说明：s_i(t) 不是类别先验或速度规则，而是对象上下文被异常 query 查询后的语义 utility。</text>
+</svg>

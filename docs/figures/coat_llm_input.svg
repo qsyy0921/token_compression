@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="900" viewBox="0 0 1700 900">
+  <defs>
+    <style>
+      .title { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 34px; font-weight: 800; fill: #0f172a; }
+      .note { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #475569; }
+      .h { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 22px; font-weight: 800; fill: #111827; }
+      .m { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #1f2937; }
+      .s { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 14px; fill: #475569; }
+      .formula { font-family: "Consolas", "Noto Sans SC", monospace; font-size: 15px; fill: #334155; }
+      .panel { fill: #fff; stroke: #cbd5e1; stroke-width: 2; rx: 18; }
+      .orange { fill: #fff7ed; stroke: #ea580c; }
+      .teal { fill: #f0fdfa; stroke: #0f766e; }
+      .gray { fill: #f8fafc; stroke: #64748b; }
+      .blue { fill: #eff6ff; stroke: #2563eb; }
+      .arrow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .tokH { fill: #fb923c; stroke: #c2410c; rx: 5; }
+      .tokM { fill: #5eead4; stroke: #0f766e; rx: 5; }
+      .tokL { fill: #e5e7eb; stroke: #94a3b8; rx: 5; }
+      .tokB { fill: #93c5fd; stroke: #2563eb; rx: 5; }
+      .fade { opacity: .25; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#334155"/></marker>
+  </defs>
+  <rect width="1700" height="900" fill="#ffffff"/>
+  <text class="title" x="60" y="58">图 3：根据对象异常分数压缩 token，并构造 LLM 输入</text>
+  <text class="note" x="60" y="90">压缩不是固定比例随机删，而是按对象异常分数决定保留、汇聚或删除。</text>
+
+  <rect class="panel gray" x="70" y="150" width="360" height="600"/>
+  <text class="h" x="135" y="190">原始视觉 token</text>
+  <text class="m" x="110" y="225">按对象框分成 token group</text>
+  <g transform="translate(115 275)">
+    <text class="m" x="0" y="0">对象 A：s_i 高</text>
+    <rect class="tokH" x="0" y="25" width="34" height="34"/>
+    <rect class="tokH" x="44" y="25" width="34" height="34"/>
+    <rect class="tokH" x="88" y="25" width="34" height="34"/>
+    <rect class="tokH" x="132" y="25" width="34" height="34"/>
+    <rect class="tokH" x="176" y="25" width="34" height="34"/>
+    <text class="m" x="0" y="120">对象 B：s_i 中</text>
+    <rect class="tokM" x="0" y="145" width="34" height="34"/>
+    <rect class="tokM" x="44" y="145" width="34" height="34"/>
+    <rect class="tokM" x="88" y="145" width="34" height="34"/>
+    <rect class="tokM" x="132" y="145" width="34" height="34"/>
+    <rect class="tokM" x="176" y="145" width="34" height="34"/>
+    <text class="m" x="0" y="240">对象 C：s_i 低</text>
+    <rect class="tokL" x="0" y="265" width="34" height="34"/>
+    <rect class="tokL" x="44" y="265" width="34" height="34"/>
+    <rect class="tokL" x="88" y="265" width="34" height="34"/>
+    <rect class="tokL" x="132" y="265" width="34" height="34"/>
+    <rect class="tokL" x="176" y="265" width="34" height="34"/>
+  </g>
+
+  <path class="arrow" d="M450 450 H545"/>
+
+  <rect class="panel blue" x="565" y="175" width="400" height="550"/>
+  <text class="h" x="675" y="215">压缩策略</text>
+  <text class="formula" x="620" y="255">priority_i = max(s_i, uncertainty_i)</text>
+  <rect class="panel orange" x="625" y="305" width="275" height="105"/>
+  <text class="h" x="665" y="342">高分：完整保留</text>
+  <text class="formula" x="665" y="374">s_i ≥ 0.7</text>
+  <rect class="panel teal" x="625" y="455" width="275" height="105"/>
+  <text class="h" x="660" y="492">中分：K 个摘要 token</text>
+  <text class="formula" x="660" y="524">0.4 ≤ s_i &lt; 0.7</text>
+  <rect class="panel gray" x="625" y="605" width="275" height="105"/>
+  <text class="h" x="675" y="642">低分：删除/强压缩</text>
+  <text class="formula" x="675" y="674">s_i &lt; 0.4</text>
+
+  <path class="arrow" d="M985 450 H1085"/>
+
+  <rect class="panel teal" x="1105" y="150" width="550" height="600"/>
+  <text class="h" x="1285" y="190">实际喂给 LLM 的内容</text>
+  <text class="m" x="1210" y="225">不是 box 表格，也不是完整原始 token</text>
+  <g transform="translate(1170 285)">
+    <text class="m" x="0" y="0">1. 高异常对象：保留完整 visual tokens</text>
+    <rect class="tokH" x="0" y="30" width="34" height="34"/>
+    <rect class="tokH" x="44" y="30" width="34" height="34"/>
+    <rect class="tokH" x="88" y="30" width="34" height="34"/>
+    <rect class="tokH" x="132" y="30" width="34" height="34"/>
+    <rect class="tokH" x="176" y="30" width="34" height="34"/>
+    <text class="m" x="0" y="115">2. 中低异常对象：summary tokens</text>
+    <rect class="tokM" x="0" y="145" width="34" height="34"/>
+    <rect class="tokM" x="44" y="145" width="34" height="34"/>
+    <rect class="tokL" x="100" y="145" width="34" height="34"/>
+    <text class="m" x="0" y="230">3. 辅助上下文 token</text>
+    <rect class="tokB" x="0" y="260" width="90" height="36"/>
+    <rect class="tokM" x="110" y="260" width="90" height="36"/>
+    <rect class="tokH" x="220" y="260" width="90" height="36"/>
+    <text class="s" x="22" y="283">轨迹</text>
+    <text class="s" x="132" y="283">场景</text>
+    <text class="s" x="236" y="283">异常查询</text>
+    <text class="m" x="0" y="365">4. 文本指令</text>
+    <rect x="0" y="390" width="390" height="52" rx="10" fill="#ffffff" stroke="#94a3b8"/>
+    <text class="s" x="18" y="422">请判断这段视频是否存在异常事件。</text>
+  </g>
+  <text class="note" x="90" y="825">说明：对象异常分数越高，越倾向于保留其原始 visual tokens；低分对象只提供摘要或被删除。</text>
+</svg>

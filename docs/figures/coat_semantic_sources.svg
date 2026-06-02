@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="920" viewBox="0 0 1700 920">
+  <defs>
+    <style>
+      .title { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 34px; font-weight: 800; fill: #0f172a; }
+      .note { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #475569; }
+      .h { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 22px; font-weight: 800; fill: #111827; }
+      .m { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #1f2937; }
+      .s { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 14px; fill: #475569; }
+      .formula { font-family: "Consolas", "Noto Sans SC", monospace; font-size: 15px; fill: #334155; }
+      .panel { fill: #fff; stroke: #cbd5e1; stroke-width: 2; rx: 18; }
+      .blue { fill: #eff6ff; stroke: #2563eb; }
+      .teal { fill: #f0fdfa; stroke: #0f766e; }
+      .purple { fill: #faf5ff; stroke: #7e22ce; }
+      .orange { fill: #fff7ed; stroke: #ea580c; }
+      .gray { fill: #f8fafc; stroke: #64748b; }
+      .arrow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .soft { stroke: #94a3b8; stroke-width: 2; fill: none; marker-end: url(#arrow2); }
+      .tokenB { fill: #93c5fd; stroke: #2563eb; stroke-width: 1; rx: 4; }
+      .tokenT { fill: #5eead4; stroke: #0f766e; stroke-width: 1; rx: 4; }
+      .tokenO { fill: #fb923c; stroke: #c2410c; stroke-width: 1.5; rx: 4; }
+      .tokenP { fill: #d8b4fe; stroke: #7e22ce; stroke-width: 1; rx: 4; }
+      .tokenG { fill: #e5e7eb; stroke: #94a3b8; stroke-width: 1; rx: 4; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#334155"/></marker>
+    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1,1 L9,5 L1,9 Z" fill="#94a3b8"/></marker>
+  </defs>
+  <rect width="1700" height="920" fill="#ffffff"/>
+  <text class="title" x="60" y="58">图 1：从 ViT 视觉 token 得到四类对象上下文语义</text>
+  <text class="note" x="60" y="90">核心：token 不是文字，但 ViT hidden vector 已包含视觉语义；我们按对象框、轨迹、局部背景和邻居关系把它组织成可学习语义 token。</text>
+
+  <rect class="panel gray" x="60" y="145" width="300" height="660"/>
+  <text class="h" x="110" y="185">输入与 ViT token</text>
+  <text class="m" x="95" y="218">视频帧 + 离线对象框</text>
+  <text class="s" x="95" y="246">LocateAnything 只负责给出 box / track</text>
+  <g transform="translate(105 290)">
+    <rect x="0" y="0" width="190" height="105" rx="10" fill="#eef2ff" stroke="#64748b" stroke-width="2"/>
+    <circle cx="55" cy="62" r="12" fill="#2563eb"/>
+    <circle cx="115" cy="62" r="12" fill="#f97316"/>
+    <rect x="38" y="35" width="36" height="72" fill="none" stroke="#2563eb" stroke-width="2"/>
+    <rect x="98" y="35" width="42" height="72" fill="none" stroke="#f97316" stroke-width="2"/>
+    <text class="s" x="20" y="135">box_i(t), track_id</text>
+  </g>
+  <path class="arrow" d="M205 440 V485"/>
+  <g transform="translate(100 515)">
+    <text class="m" x="15" y="-18">Qwen3-VL ViT</text>
+    <g>
+      <rect class="tokenB" x="0" y="0" width="26" height="26"/>
+      <rect class="tokenB" x="36" y="0" width="26" height="26"/>
+      <rect class="tokenG" x="72" y="0" width="26" height="26"/>
+      <rect class="tokenB" x="108" y="0" width="26" height="26"/>
+      <rect class="tokenB" x="144" y="0" width="26" height="26"/>
+      <rect class="tokenB" x="0" y="36" width="26" height="26"/>
+      <rect class="tokenT" x="36" y="36" width="26" height="26"/>
+      <rect class="tokenT" x="72" y="36" width="26" height="26"/>
+      <rect class="tokenO" x="108" y="36" width="26" height="26"/>
+      <rect class="tokenO" x="144" y="36" width="26" height="26"/>
+      <rect class="tokenB" x="0" y="72" width="26" height="26"/>
+      <rect class="tokenT" x="36" y="72" width="26" height="26"/>
+      <rect class="tokenG" x="72" y="72" width="26" height="26"/>
+      <rect class="tokenO" x="108" y="72" width="26" height="26"/>
+      <rect class="tokenB" x="144" y="72" width="26" height="26"/>
+    </g>
+    <text class="formula" x="-10" y="145">X(t,h,w) ∈ R^d</text>
+  </g>
+
+  <path class="arrow" d="M372 475 H445"/>
+
+  <rect class="panel blue" x="455" y="125" width="360" height="180"/>
+  <text class="h" x="500" y="165">当前对象语义 z_i(t)</text>
+  <text class="m" x="495" y="198">从对象框内取 token</text>
+  <text class="formula" x="495" y="228">T_i(t) = tokens inside box_i(t)</text>
+  <text class="formula" x="495" y="256">z_i(t) = ObjectPool(T_i(t))</text>
+  <g transform="translate(660 150)">
+    <rect class="tokenO" x="0" y="0" width="30" height="30"/>
+    <rect class="tokenO" x="40" y="0" width="30" height="30"/>
+    <rect class="tokenO" x="80" y="0" width="30" height="30"/>
+  </g>
+
+  <rect class="panel teal" x="455" y="345" width="360" height="190"/>
+  <text class="h" x="500" y="385">历史轨迹语义 h_i(t)</text>
+  <text class="m" x="495" y="418">同一 track 的历史对象状态序列</text>
+  <text class="formula" x="495" y="448">e_i(τ)=[z_i(τ), box, v, a, label]</text>
+  <text class="formula" x="495" y="476">h_i(t)=TemporalEncoder(e_i(t-k:t))</text>
+  <path d="M610 510 C650 470, 700 535, 760 485" stroke="#0f766e" stroke-width="3" fill="none"/>
+  <circle cx="610" cy="510" r="7" fill="#0f766e"/>
+  <circle cx="690" cy="520" r="7" fill="#0f766e"/>
+  <circle cx="760" cy="485" r="7" fill="#0f766e"/>
+
+  <rect class="panel purple" x="455" y="575" width="360" height="190"/>
+  <text class="h" x="500" y="615">局部背景语义 c_i(t)</text>
+  <text class="m" x="495" y="648">取对象框周围、但不在框内的 token</text>
+  <text class="formula" x="495" y="678">C_i(t)=tokens around box_i(t)</text>
+  <text class="formula" x="495" y="706">c_i(t)=BackgroundPool(C_i(t))</text>
+  <rect x="645" y="724" width="110" height="30" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+  <rect x="675" y="710" width="54" height="58" rx="7" fill="none" stroke="#7e22ce" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <rect class="panel orange" x="890" y="230" width="390" height="260"/>
+  <text class="h" x="945" y="270">对象交互语义 r_i(t)</text>
+  <text class="m" x="930" y="303">只选择异常相关 top-k 邻居</text>
+  <text class="s" x="930" y="331">person-person / person-car / person-bag ...</text>
+  <text class="formula" x="930" y="363">m_ij = MLP([z_i,h_i,z_j,h_j,rel_ij])</text>
+  <text class="formula" x="930" y="391">r_i(t)=RelationPool({m_ij})</text>
+  <g transform="translate(1015 420)">
+    <circle cx="0" cy="0" r="12" fill="#2563eb"/>
+    <circle cx="88" cy="-25" r="12" fill="#2563eb"/>
+    <circle cx="135" cy="25" r="12" fill="#f97316"/>
+    <line x1="0" y1="0" x2="88" y2="-25" stroke="#64748b" stroke-width="2"/>
+    <line x1="88" y1="-25" x2="135" y2="25" stroke="#ea580c" stroke-width="3"/>
+    <text class="s" x="-35" y="55">距离 / 相对速度 / 接近趋势 / 持续时间</text>
+  </g>
+
+  <path class="soft" d="M825 215 C855 220, 865 250, 890 275"/>
+  <path class="soft" d="M825 440 H890"/>
+  <path class="soft" d="M825 670 C860 650, 870 520, 890 470"/>
+
+  <rect class="panel gray" x="1335" y="260" width="310" height="260"/>
+  <text class="h" x="1402" y="300">得到对象上下文</text>
+  <text class="m" x="1380" y="335">供异常分数模块使用</text>
+  <text class="formula" x="1380" y="385">F_i(t) = [</text>
+  <text class="formula" x="1420" y="415">z_i(t),  当前对象</text>
+  <text class="formula" x="1420" y="445">h_i(t),  历史行为</text>
+  <text class="formula" x="1420" y="475">c_i(t),  局部背景</text>
+  <text class="formula" x="1420" y="505">r_i(t)   对象交互</text>
+  <text class="formula" x="1380" y="535">]</text>
+  <path class="arrow" d="M1285 360 H1325"/>
+  <text class="note" x="60" y="850">图内说明：四类语义来自 ViT token 与离线对象/轨迹结构；不是把 box 坐标表格直接喂给 LLM。</text>
+</svg>
