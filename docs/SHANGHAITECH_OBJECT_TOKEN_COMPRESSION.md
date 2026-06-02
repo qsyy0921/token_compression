@@ -9,7 +9,11 @@
 - 压缩或丢弃背景对象、低风险正常对象的 token；
 - 当单帧检测框不足以判断异常时，引入 tracking 建模对象的时间行为。
 
-当前工作目录中的目标检测/grounding 模型是 `models/LocateAnything-3B`。运行环境固定使用：
+当前工作目录中的 `models/LocateAnything-3B` 只用于离线给 ShanghaiTech 生成对象伪标签和对象轨迹标注。它不是最终 token 压缩推理链路的一部分。
+
+后续 token 压缩阶段应使用这些伪标签形成的对象先验、训练出的轻量对象/轨迹模块，或直接使用视频模型内部的对象 token 分组来做压缩，而不是每次推理都调用 LocateAnything。
+
+LocateAnything 离线标注运行环境固定使用：
 
 ```text
 C:\Users\10495\anaconda3\envs\token_pruner_merge
@@ -146,9 +150,11 @@ ShanghaiTech 没有公开一个严格封闭的类别表，例如“类别 1 = �
 
 这进一步支持本文档的对象选择：`person` 和非行人移动对象必须保留；`bag/box/cart` 等人-物交互对象需要条件保留；背景对象不应进入主检测集合。
 
-## LocateAnything 能否检测这些 Label
+## LocateAnything 作为离线标注器能否覆盖这些 Label
 
-LocateAnything 是开放词表视觉 grounding / detection 模型，输出主要是 box 或 point。它适合回答“图中符合这个文本描述的对象在哪里”，不适合单独回答“这个行为是否异常”。因此，上面列出的 label 需要分成三类处理。
+LocateAnything 在本项目中的角色是离线标注器：给数据集生成对象框、对象类别和后续 tracking 的输入。它是开放词表视觉 grounding / detection 模型，输出主要是 box 或 point。它适合回答“图中符合这个文本描述的对象在哪里”，不适合单独回答“这个行为是否异常”。
+
+因此，上面列出的 label 需要分成三类处理。
 
 ### 可以直接作为对象检测的 Label
 
@@ -175,7 +181,7 @@ LocateAnything 是开放词表视觉 grounding / detection 模型，输出主要
 | door / gate / entrance | `door`, `gate`, `entrance` | 可检测为场景上下文。 |
 | railing / fence / barrier | `railing`, `fence`, `barrier` | 可检测为场景上下文。 |
 
-结论：LocateAnything 基本可以覆盖我们定义的主要“对象 label”，尤其是 `person`、交通工具、滑行对象、包/箱/推车等实体对象。
+结论：作为离线标注器，LocateAnything 基本可以覆盖我们定义的主要“对象 label”，尤其是 `person`、交通工具、滑行对象、包/箱/推车等实体对象。
 
 ### 不应直接当作目标检测 Label 的异常
 
@@ -196,7 +202,7 @@ LocateAnything 是开放词表视觉 grounding / detection 模型，输出主要
 | restricted-zone entry | 场景区域规则。 | track 与场景区域 mask/ROI 关系。 |
 | climbing / jumping | 动作/姿态变化。 | person track + 可选 railing/fence/stairs 上下文。 |
 
-结论：这些异常 label 不能依赖 LocateAnything 单独检测。它们应由 `对象检测 + tracking + 时序规则/模型` 判断。
+结论：这些异常 label 不能依赖 LocateAnything 单独检测。LocateAnything 只能提供对象框；异常动作标签应由 `对象伪标签 + tracking + 时序规则/模型` 生成。
 
 ### 不确定或不建议依赖的 Label
 
@@ -207,7 +213,7 @@ LocateAnything 是开放词表视觉 grounding / detection 模型，输出主要
 | `object being thrown` | 事件描述强，小目标速度快。 | 优先检测具体物体，如 `ball`, `bottle`, `bag`，再结合光流/tracking。 |
 | `vehicle` | 泛化强，可能漏掉小交通工具或产生宽泛框。 | 和 `car/motorcycle/bicycle/scooter` 同时使用。 |
 
-## LocateAnything Prompt 建议
+## LocateAnything 离线标注 Prompt 建议
 
 第一阶段不要一次性塞入所有对象。建议分组运行，减少开放词表互相干扰。
 
@@ -229,7 +235,27 @@ bag</c>backpack</c>handbag</c>suitcase</c>luggage</c>box</c>package</c>cart</c>t
 bench</c>chair</c>stairs</c>door</c>gate</c>railing</c>fence
 ```
 
-第一版实验建议只跑前两组。第三组只用于解释 `climbing`、`loitering`、`restricted-zone entry` 等场景规则异常。
+第一版离线标注建议只跑前两组。第三组只用于解释 `climbing`、`loitering`、`restricted-zone entry` 等场景规则异常。
+
+## LocateAnything 与最终 Token 压缩的关系
+
+必须区分两个阶段：
+
+| 阶段 | 是否使用 LocateAnything | 目标 | 输出 |
+| --- | --- | --- | --- |
+| 离线数据标注阶段 | 使用 | 给 ShanghaiTech 生成对象框、对象类别、对象轨迹和伪异常标签 | detection JSON/CSV、track JSON/CSV、对象风险标签 |
+| token 压缩训练阶段 | 不直接依赖 | 学习哪些对象 token 应保留、哪些正常对象 token 可压缩 | 压缩策略、对象风险预测器、训练监督 |
+| 最终推理阶段 | 不使用或只作为 oracle ablation | 验证对象级 token 压缩是否有效 | frame/object anomaly score、token retention ratio |
+
+推荐研究路线：
+
+1. 用 LocateAnything 离线标注 `person`、交通工具、包/箱/推车等对象。
+2. 对这些对象做 tracking，形成对象轨迹。
+3. 用异常 mask 和轨迹规则生成对象级伪标签。
+4. 用这些伪标签训练对象风险预测器或 token 保留策略。
+5. 最终方法在推理时不调用 LocateAnything，而是依赖模型内部 token、轻量对象模块或已学习的对象条件压缩策略。
+
+这样可以避免把方法贡献变成“调用一个强大的外部 grounding 模型”，而是把 LocateAnything 作为数据构建工具，服务于对象级 token 压缩的监督和验证。
 
 ## 需要检测哪些对象
 
@@ -400,7 +426,7 @@ fence
 
 推荐两阶段流程：
 
-1. 用 LocateAnything 在采样帧或全帧上检测推荐对象。
+1. 用 LocateAnything 离线在采样帧或全帧上检测推荐对象。
 2. 使用 ByteTrack、BoT-SORT 或 OC-SORT 将检测框关联成轨迹。
 3. 对每条对象轨迹计算时序特征。
 4. 给每条对象轨迹分配异常风险分数。
@@ -466,7 +492,7 @@ S_frame(t) = max_i S_object(track_i, t)
 12_0142
 ```
 
-2. 用 LocateAnything 跑最小对象集合。
+2. 用 LocateAnything 离线跑最小对象集合。
 
 3. 保存每帧检测结果为 JSON 或 CSV：
 
