@@ -132,13 +132,18 @@ def parse_answer(answer: str, image_width: int, image_height: int) -> tuple[list
 
 
 class LocateAnythingWorker:
-    def __init__(self, model_path: Path, device: str, dtype: torch.dtype):
+    def __init__(self, model_path: Path, device: str, dtype: torch.dtype, attn_implementation: str):
         self.device = device
         self.dtype = dtype
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
         self.processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
         self.model = (
-            AutoModel.from_pretrained(model_path, torch_dtype=dtype, trust_remote_code=True)
+            AutoModel.from_pretrained(
+                model_path,
+                torch_dtype=dtype,
+                trust_remote_code=True,
+                attn_implementation=attn_implementation,
+            )
             .to(device)
             .eval()
         )
@@ -223,6 +228,7 @@ def main() -> None:
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--dtype", choices=["bfloat16", "float16", "float32"], default="bfloat16")
+    parser.add_argument("--attn-implementation", choices=["sdpa", "magi"], default="sdpa")
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
@@ -232,7 +238,7 @@ def main() -> None:
     output_root.mkdir(parents=True, exist_ok=True)
     prompt = build_prompt(DEFAULT_CATEGORIES)
 
-    worker = LocateAnythingWorker(Path(args.model_path), args.device, dtype)
+    worker = LocateAnythingWorker(Path(args.model_path), args.device, dtype, args.attn_implementation)
     videos = iter_videos(frames_root, args.video, Path(args.video_list) if args.video_list else None)
     summary = {
         "model_path": args.model_path,

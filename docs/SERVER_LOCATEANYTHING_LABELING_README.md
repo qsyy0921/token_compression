@@ -18,10 +18,11 @@
 本地验证环境是：
 
 ```bash
-python -m pip install torch transformers==4.57.1 pillow opencv-python-headless lmdb
+python -m pip install torch transformers==4.57.1 pillow opencv-python-headless lmdb decord peft
 ```
 
 如果服务器上 transformers 版本太新导致 remote code 加载失败，优先使用 `transformers==4.57.1`。
+如果服务器没有 `magi_attention`，脚本默认使用 `sdpa` attention 后端。
 
 ## 两张 GPU 分片运行
 
