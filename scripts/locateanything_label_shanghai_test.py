@@ -190,10 +190,23 @@ def build_prompt(categories: list[str]) -> str:
     return f"Locate all the instances that matches the following description: {cats}."
 
 
-def iter_videos(frames_root: Path, only_video: str | None) -> list[Path]:
+def load_video_list(path: Path) -> set[str]:
+    videos: set[str] = set()
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            video = line.strip()
+            if video:
+                videos.add(video)
+    return videos
+
+
+def iter_videos(frames_root: Path, only_video: str | None, video_list: Path | None) -> list[Path]:
     videos = sorted([p for p in frames_root.iterdir() if p.is_dir()], key=lambda p: p.name)
     if only_video:
         videos = [p for p in videos if p.name == only_video]
+    if video_list:
+        allowed = load_video_list(video_list)
+        videos = [p for p in videos if p.name in allowed]
     return videos
 
 
@@ -203,6 +216,7 @@ def main() -> None:
     parser.add_argument("--model-path", default="models/LocateAnything-3B")
     parser.add_argument("--output-root", default="outputs/locateanything_shanghai_test")
     parser.add_argument("--video", default=None, help="Optional single video id, e.g. 01_0014.")
+    parser.add_argument("--video-list", default=None, help="Optional text file with one video id per line.")
     parser.add_argument("--max-frames", type=int, default=None)
     parser.add_argument("--generation-mode", choices=["fast", "slow", "hybrid"], default="hybrid")
     parser.add_argument("--max-new-tokens", type=int, default=1536)
@@ -219,7 +233,7 @@ def main() -> None:
     prompt = build_prompt(DEFAULT_CATEGORIES)
 
     worker = LocateAnythingWorker(Path(args.model_path), args.device, dtype)
-    videos = iter_videos(frames_root, args.video)
+    videos = iter_videos(frames_root, args.video, Path(args.video_list) if args.video_list else None)
     summary = {
         "model_path": args.model_path,
         "frames_root": args.frames_root,
@@ -242,11 +256,16 @@ def main() -> None:
         start = time.time()
         processed = 0
         with out_path.open("a", encoding="utf-8") as handle:
+            window_time = 0.0
+            window_tokens = 0
+            total_time = 0.0
+            total_tokens = 0
             for frame_path in frames:
                 frame_idx = numeric_frame_key(frame_path)
                 if frame_idx in done:
                     continue
                 image = Image.open(frame_path).convert("RGB")
+                frame_start = time.time()
                 answer = worker.predict(
                     image,
                     prompt,
@@ -254,6 +273,12 @@ def main() -> None:
                     max_new_tokens=args.max_new_tokens,
                     temperature=args.temperature,
                 )
+                generation_seconds = time.time() - frame_start
+                output_tokens = len(worker.tokenizer.encode(answer, add_special_tokens=False))
+                window_time += generation_seconds
+                window_tokens += output_tokens
+                total_time += generation_seconds
+                total_tokens += output_tokens
                 boxes, points = parse_answer(answer, image.width, image.height)
                 record = {
                     "video_id": video_dir.name,
@@ -263,6 +288,8 @@ def main() -> None:
                     "height": image.height,
                     "prompt": prompt,
                     "answer": answer,
+                    "generation_seconds": generation_seconds,
+                    "output_tokens": output_tokens,
                     "boxes": boxes,
                     "points": points,
                 }
@@ -271,12 +298,26 @@ def main() -> None:
                 processed += 1
                 if processed % 10 == 0:
                     elapsed = time.time() - start
-                    print(f"{video_dir.name}: processed {processed} new frames in {elapsed:.1f}s", flush=True)
+                    window_tps = window_tokens / window_time if window_time > 0 else 0.0
+                    avg_frame_time = window_time / 10.0
+                    total_tps = total_tokens / total_time if total_time > 0 else 0.0
+                    print(
+                        f"{video_dir.name}: processed {processed} new frames in {elapsed:.1f}s; "
+                        f"last10_time={window_time:.2f}s avg_frame={avg_frame_time:.2f}s "
+                        f"last10_output_tokens={window_tokens} last10_tok_s={window_tps:.2f} "
+                        f"total_tok_s={total_tps:.2f}",
+                        flush=True,
+                    )
+                    window_time = 0.0
+                    window_tokens = 0
         summary["videos"].append(
             {
                 "video_id": video_dir.name,
                 "frames_considered": len(frames),
                 "new_frames_processed": processed,
+                "generation_seconds": total_time,
+                "output_tokens": total_tokens,
+                "output_tokens_per_second": total_tokens / total_time if total_time > 0 else 0.0,
                 "output": str(out_path.as_posix()),
             }
         )

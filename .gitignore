@@ -12,6 +12,7 @@ experiments/
 outputs/
 runs/
 wandb/
+packages/
 *.log
 
 # Python
@@ -26,4 +27,3 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
-
