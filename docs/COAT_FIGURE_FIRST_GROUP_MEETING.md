@@ -14,6 +14,115 @@
 
 图 2 说明：对象异常分数 `s_i(t)` 由对象上下文表示和异常语义 query 共同得到。训练时使用帧级 MIL、mask-overlap 伪监督、ranking loss 和 token budget 约束，使 `s_i(t)` 表示对象 token group 对异常判断的语义贡献。
 
+## UtilityHead 是什么，如何设计
+
+`UtilityHead` 是一个轻量对象打分器，不是 LLM，也不是检测器。它的作用是：
+
+```text
+输入：某个对象的上下文 token
+输出：这个对象的异常分数 s_i(t)
+```
+
+也就是：
+
+```text
+UtilityHead: object context tokens -> anomaly utility score
+```
+
+这个分数再用于决定该对象对应的 visual tokens 应该保留、汇聚还是删除。
+
+### UtilityHead 的输入
+
+对对象 `o_i`，先构造对象上下文 token：
+
+```text
+C_i(t) = [
+  Z_i(t),      # 当前对象 visual tokens，可为 K 个
+  h_i(t),      # 历史轨迹 token
+  c_i(t),      # 局部背景 token
+  r_i(t)       # 对象交互 token，可选
+]
+```
+
+其中：
+
+```text
+Z_i(t): 从对象框内 ViT tokens pooling 得到
+h_i(t): 从 track 历史编码得到
+c_i(t): 从对象周围背景 tokens pooling 得到
+r_i(t): 从高风险邻居对象关系聚合得到
+```
+
+再引入异常 query：
+
+```text
+q_anomaly
+```
+
+或者多个异常 query：
+
+```text
+q_motion, q_scene, q_interaction, q_static
+```
+
+### 推荐结构：Cross-Attention + MLP
+
+第一版建议使用轻量结构：
+
+```text
+A_i(t) = CrossAttention(
+    query = q_anomaly,
+    key/value = C_i(t)
+)
+
+s_i(t) = sigmoid(MLP(A_i(t)))
+```
+
+直观理解：
+
+```text
+异常 query 去读取对象的当前视觉、历史轨迹、局部背景和交互信息，
+判断这个对象是否和异常有关。
+```
+
+更具体地：
+
+```text
+Z_i = ObjectPool(T_i)          # K 个 object tokens
+h_i = TrackEncoder(track_i)   # 1 个 track token
+c_i = BackgroundPool(bg_i)    # 1 个 local background token
+r_i = RelationPool(N_i)       # 1 个 interaction token，可选
+
+C_i = [Z_i^1, ..., Z_i^K, h_i, c_i, r_i]
+A_i = MHCA(q_anomaly, C_i)
+s_i = sigmoid(MLP(A_i))
+```
+
+推荐第一版配置：
+
+```text
+Qwen3-VL / ViT: 先冻结
+object visual tokens: K = 4
+hidden dim: d = 512 或 1024
+cross-attention: 1 layer, 4-8 heads
+MLP: 2 layers
+output: 1 个标量 s_i(t)
+```
+
+第一版可以暂时不加复杂 `r_i(t)`，先验证：
+
+```text
+Z_i(t) + h_i(t) + c_i(t) + q_anomaly
+```
+
+如果这个版本有效，再加入：
+
+```text
+interaction token r_i(t)
+multi-query anomaly heads
+counterfactual supervision
+```
+
 ## 图 3：异常分数如何指导 token 压缩
 
 ![根据对象异常分数压缩 token 并构造 LLM 输入](figures/coat_llm_input.png)
@@ -224,6 +333,32 @@ high-risk object tokens
 输入 LLM 是 clip 级别：compressed video tokens
 ```
 
+这三句话的含义是：
+
+```text
+object-frame 级别的 s_i(t):
+  对象 o_i 在第 t 帧有一个异常分数。
+  这个分数描述“这个对象在这一帧是否异常相关”。
+
+token-frame 级别的 M(t,h,w):
+  ViT token 位于第 t 帧的空间网格位置 (h,w)。
+  我们把对象分数 s_i(t) 映射回 token 网格，
+  得到每个 token 的处理方式：keep / pool / drop。
+
+clip 级别的 compressed video tokens:
+  Qwen3-VL 不是只看单帧，而是看一个视频片段。
+  所有帧的 token mask 生效后，得到整个 clip 的压缩视觉 token 序列。
+  这个压缩后的 token 序列才是喂给 LLM 的视觉输入。
+```
+
+换句话说：
+
+```text
+s_i(t) 决定对象重要性；
+M(t,h,w) 决定具体哪些 ViT token 被保留；
+compressed video tokens 是所有帧压缩后的最终 LLM 输入。
+```
+
 为了稳定，`s_i(t)` 不建议完全逐帧跳变，而应沿 track 做平滑：
 
 ```text
@@ -257,67 +392,6 @@ smooth_s_i(t) = EMA(s_i(t-k:t))
 | 高分对象邻域背景 | `enlarged_box - box` | 保留或汇聚 | 判断对象是否与场景不匹配 |
 | 全局背景 token | 不属于任何对象框 | 强汇聚成少量 scene tokens | 提供场景类型和摄像头上下文 |
 | 与高分对象相关的低分邻居 | top-k risk neighbor | 保留 relation summary | 支持交互异常判断 |
-
-## 这个 idea 是否可能 work
-
-我认为这个 idea **有可能 work**，但要控制版本复杂度。
-
-最可能有效的部分：
-
-```text
-对象 token grouping + 对象异常分数 + token budget 压缩
-```
-
-原因是异常通常集中在少数对象上，对象级压缩比全局随机 pruning 更符合任务结构。
-
-最应该先验证的版本：
-
-```text
-z_i(t) 当前对象 token
-+ h_i(t) 简单轨迹语义
-+ c_i(t) 局部背景
-+ q 异常 query
-```
-
-暂时不要把复杂交互图作为核心。`r_i(t)` 有潜力，但容易受检测误差和 ID switch 影响，应该作为后续 ablation。
-
-主要风险：
-
-```text
-1. 对象框不准会导致 T_i(t) 混入背景或漏掉异常区域。
-2. tracking 断轨会影响 h_i(t)。
-3. mask-overlap 伪监督不是完美对象标签。
-4. 如果 UtilityHead 太弱，s_i(t) 可能只学到类别先验。
-5. 如果 token budget 约束太弱，模型可能把所有对象都保留。
-```
-
-对应解决方式：
-
-```text
-1. 对象框适度扩大，低质量 track 降权。
-2. 使用 track-level 平滑和短轨迹过滤。
-3. mask-overlap 只作为弱监督，配合 frame MIL 和 ranking loss。
-4. 做类别先验 baseline，证明 COAT 不只是类别规则。
-5. 加 token budget loss，并报告 token retention ratio。
-```
-
-最关键的实验判断标准：
-
-```text
-在相同 token retention ratio 下，
-COAT 是否比随机压缩、类别先验压缩、attention/token-norm 压缩保持更高的 frame AUC。
-```
-
-如果能同时证明：
-
-```text
-abnormal object token recall 更高；
-normal object pruning ratio 更高；
-frame-level AUC 下降更小或提升；
-推理 token 数显著减少；
-```
-
-这个 idea 就是成立的。
 
 ## 汇报主线
 
