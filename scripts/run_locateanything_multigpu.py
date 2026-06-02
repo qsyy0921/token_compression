@@ -26,7 +26,7 @@ def main() -> None:
     parser.add_argument("--model-path", default="models/LocateAnything-3B")
     parser.add_argument("--output-root", default="outputs/locateanything_shanghai_test")
     parser.add_argument("--work-root", default="outputs/locateanything_multigpu_work")
-    parser.add_argument("--gpus", default="0,2", help="Comma-separated physical GPU ids.")
+    parser.add_argument("--gpus", default="0,2", help="Comma-separated physical GPU ids. Repeat ids to run multiple workers per GPU.")
     parser.add_argument("--split-counts", default="55,52", help="Comma-separated video counts per GPU.")
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16", "float32"])
@@ -74,11 +74,12 @@ def main() -> None:
 
     processes = []
     start = 0
-    for gpu, count in zip(gpus, split_counts):
+    for job_idx, (gpu, count) in enumerate(zip(gpus, split_counts)):
         subset = videos[start : start + count]
         start += count
-        list_path = work_root / f"gpu{gpu}_videos.txt"
-        log_path = work_root / f"gpu{gpu}.log"
+        job_name = f"job{job_idx}_gpu{gpu}"
+        list_path = work_root / f"{job_name}_videos.txt"
+        log_path = work_root / f"{job_name}.log"
         write_list(list_path, subset)
         cmd = [
             args.python,
@@ -104,8 +105,17 @@ def main() -> None:
         ]
         env = os.environ.copy()
         env["CUDA_VISIBLE_DEVICES"] = gpu
-        manifest["jobs"].append({"gpu": gpu, "videos": subset, "list": str(list_path), "log": str(log_path), "cmd": cmd})
-        print(f"gpu {gpu}: {len(subset)} videos -> {list_path}", flush=True)
+        manifest["jobs"].append(
+            {
+                "job_idx": job_idx,
+                "gpu": gpu,
+                "videos": subset,
+                "list": str(list_path),
+                "log": str(log_path),
+                "cmd": cmd,
+            }
+        )
+        print(f"job {job_idx} gpu {gpu}: {len(subset)} videos -> {list_path}", flush=True)
         print(" ".join(cmd), flush=True)
         if not args.dry_run:
             log_path.parent.mkdir(parents=True, exist_ok=True)
