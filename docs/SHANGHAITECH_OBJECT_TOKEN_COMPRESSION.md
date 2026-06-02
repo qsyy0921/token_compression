@@ -117,6 +117,35 @@ ShanghaiTech 没有公开一个严格封闭的类别表，例如“类别 1 = �
 - CVPR 2019 Object-Centric Auto-Encoders：https://openaccess.thecvf.com/content_CVPR_2019/papers/Ionescu_Object-Centric_Auto-Encoders_and_Dummy_Anomalies_for_Abnormal_Event_Detection_in_CVPR_2019_paper.pdf
 - ICCV 2021 RTFM：https://openaccess.thecvf.com/content/ICCV2021/papers/Tian_Weakly-Supervised_Video_Anomaly_Detection_With_Robust_Temporal_Feature_Magnitude_Learning_ICCV_2021_paper.pdf
 
+## 其他论文中提到的异常种类
+
+多数使用 ShanghaiTech 的论文只把它作为 frame-level anomaly detection benchmark 使用，不会给出逐视频的异常类别表。它们通常在数据集介绍、示例图或实验说明中列出异常示例。下面汇总这些论文/综述中反复出现的异常描述。
+
+| 来源 | 提到的 ShanghaiTech 异常 | 对本项目的含义 |
+| --- | --- | --- |
+| 官方数据页 | 突然运动异常，例如 chasing、brawling | 必须检测 person，并做多人 tracking。 |
+| Luo et al., ICCV 2017 原始论文 | 13 scenes、130 abnormal events、像素级异常标注；强调多场景和突然运动异常 | 不能只做闭集物体分类，需要对象轨迹和场景条件。 |
+| Sensors 2022, `Video Anomaly Detection Based on Convolutional Recurrent AutoEncoder` | bicycles on the sidewalk、chases、quarrels | 必须检测 bicycle/person，并做人-人交互建模。 |
+| Applied Intelligence 2022, `Attention-based residual autoencoder for video anomaly detection` | 可视化示例中 `01_0063` 为 bicycle rider 异常 | bicycle/rider 是直接异常对象，适合对象 token 保留。 |
+| PMC 2023, text-description based VAD | fighting、stealing、falling down；cars、bicycles、motorbikes、running 在 walking-only zones 中视为异常 | 交通工具和 running 都应进入风险对象/轨迹规则。 |
+| Artificial Intelligence Review 2024 crowd anomaly survey | abnormal objects: vehicles、bicycles；abnormal behaviors: fighting、robbing | 对象出现异常和行为异常都要覆盖。 |
+| Scientific Reports 2025 FEAD | cars、bicycles、skateboards in motion；示例含 bicycle、throwing objects、motorcycle | 需要 car/bicycle/skateboard/motorcycle 和 thrown-object 兜底。 |
+| NeurIPS 2024 VAD benchmark paper | biking、cart movement、loitering、running、throwing objects、chasing | cart、loitering、running、throwing object 需要 tracking。 |
+| 其他 AED/综述论文 | chasing、jumping、fighting；strange objects such as trucks、bicycles、skateboards | jumping、truck/large vehicle 可并入运动异常和 vehicle 类。 |
+
+由这些论文可以得到一套更稳的合并类别：
+
+| 合并类别 | 文献中出现的写法 | 需要对象 |
+| --- | --- | --- |
+| 骑行/交通工具异常 | bicycle rider, biking, bicycle, motorbike, motorcycle, car, truck, vehicle, skateboard, scooter | person, bicycle, motorcycle, motorbike, car, vehicle, skateboard, scooter |
+| 人体快速运动异常 | running, sudden motion, fast-moving | person |
+| 人-人交互异常 | chasing, brawling, fighting, quarrel, pushing, collision | person |
+| 物体交互异常 | throwing objects, cart movement, pushing pram/cart, carrying suspicious object | person, cart, trolley, stroller, pram, bag, box, package, thrown object |
+| 安全/公共秩序异常 | stealing, robbing, falling down, lying/fall, disturbing peace | person, bag, suitcase, object near person |
+| 场景规则异常 | loitering, wrong direction, restricted-zone entry, climbing/jumping | person, railing, fence, stairs, gate |
+
+这进一步支持本文档的对象选择：`person` 和非行人移动对象必须保留；`bag/box/cart` 等人-物交互对象需要条件保留；背景对象不应进入主检测集合。
+
 ## 需要检测哪些对象
 
 不要一开始就使用很宽的开放词表。开放词表太大时，LocateAnything 会产生很多和异常无关的背景框，浪费对象 token，也会削弱“压缩非异常对象 token”的研究主张。
