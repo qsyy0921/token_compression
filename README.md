@@ -11,3 +11,4 @@
 - [基于 Qwen3-VL-8B 的对象风险 Token 删除方案](docs/QWEN3VL_OBJECT_TOKEN_PRUNING_PLAN.md)
 - [对象异常分数与 Token 删除策略](docs/OBJECT_ANOMALY_SCORE_FOR_TOKEN_PRUNING.md)
 - [没有对象级 Label 时的监督构造策略](docs/NO_OBJECT_LABEL_STRATEGY.md)
+- [LocateAnything 对 ShanghaiTech Label 的支持矩阵](docs/LOCATEANYTHING_LABEL_SUPPORT_MATRIX.md)
