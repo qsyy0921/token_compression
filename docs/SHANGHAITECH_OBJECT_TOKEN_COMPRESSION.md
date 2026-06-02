@@ -146,6 +146,91 @@ ShanghaiTech 没有公开一个严格封闭的类别表，例如“类别 1 = �
 
 这进一步支持本文档的对象选择：`person` 和非行人移动对象必须保留；`bag/box/cart` 等人-物交互对象需要条件保留；背景对象不应进入主检测集合。
 
+## LocateAnything 能否检测这些 Label
+
+LocateAnything 是开放词表视觉 grounding / detection 模型，输出主要是 box 或 point。它适合回答“图中符合这个文本描述的对象在哪里”，不适合单独回答“这个行为是否异常”。因此，上面列出的 label 需要分成三类处理。
+
+### 可以直接作为对象检测的 Label
+
+这些 label 是可见实体，适合直接用 LocateAnything prompt 检测为 box：
+
+| Label | 推荐 prompt | 备注 |
+| --- | --- | --- |
+| person / pedestrian / people | `person`, `pedestrian`, `people` | 最核心对象，应始终检测。 |
+| bicycle / bike | `bicycle`, `bike` | 适合直接检测。 |
+| motorcycle / motorbike | `motorcycle`, `motorbike` | 适合直接检测。 |
+| scooter | `scooter`, `electric scooter`, `kick scooter` | 可能受训练数据覆盖影响，建议保留同义词。 |
+| car / vehicle | `car`, `vehicle` | 适合直接检测；`vehicle` 可兜底大交通工具。 |
+| truck | `truck`, `large vehicle` | ShanghaiTech 中不一定频繁，但可作为 vehicle 兜底。 |
+| skateboard | `skateboard` | 适合直接检测，但小目标时需要高分辨率/低抽帧。 |
+| cart / trolley | `cart`, `trolley`, `handcart` | 适合直接检测，但不同场景外观差异大。 |
+| stroller / pram | `stroller`, `pram`, `baby stroller` | 与 cart 类似，建议作为同义 prompt。 |
+| bag / backpack / handbag | `bag`, `backpack`, `handbag` | 可检测，但小包/遮挡会影响召回。 |
+| suitcase / luggage | `suitcase`, `luggage` | 适合直接检测。 |
+| box / package / parcel | `box`, `package`, `parcel` | 可检测，但纸箱、小包裹可能漏检。 |
+| umbrella | `umbrella` | 可检测，但不是主要异常对象。 |
+| ball / bottle / thrown object | `ball`, `bottle`, `object being thrown` | `ball/bottle` 可直接检测；`thrown object` 更像事件描述，不稳定。 |
+| bench / chair | `bench`, `chair` | 可检测，但默认应压缩。 |
+| stairs / steps | `stairs`, `steps` | 可检测为场景上下文。 |
+| door / gate / entrance | `door`, `gate`, `entrance` | 可检测为场景上下文。 |
+| railing / fence / barrier | `railing`, `fence`, `barrier` | 可检测为场景上下文。 |
+
+结论：LocateAnything 基本可以覆盖我们定义的主要“对象 label”，尤其是 `person`、交通工具、滑行对象、包/箱/推车等实体对象。
+
+### 不应直接当作目标检测 Label 的异常
+
+这些 label 是动作、关系或事件，不是单帧实体框。LocateAnything 可能可以用自然语言描述定位相关区域，但结果不能当作稳定的目标检测类别。
+
+| Label | 为什么不能直接当检测类别 | 应如何处理 |
+| --- | --- | --- |
+| running | 动作状态，不是物体类别。 | 检测 person，tracking 计算速度/加速度。 |
+| sudden motion / fast-moving | 运动属性。 | 依赖 person/object track 的速度。 |
+| chasing | 多人关系事件。 | 多 person tracking，计算相对距离和追逐方向。 |
+| brawling / fighting / quarrel | 多人交互事件。 | 多 person tracking + 局部时序特征。 |
+| pushing / collision | 交互或接触事件。 | 多对象 tracking，计算距离、重叠和运动突变。 |
+| falling down | 姿态/时序事件。 | person track + 姿态或框形状变化；必要时接 pose model。 |
+| stealing / robbing | 语义事件，需要长时关系。 | person-bag/suitcase tracking + 关系变化，不能靠单帧检测。 |
+| throwing objects | 动作和小物体高速运动。 | person track + 小物体 track/光流。 |
+| loitering | 长时间停留行为。 | person track 停留时间和区域位置。 |
+| wrong direction | 场景规则和运动方向。 | person/object track 相对场景主流方向。 |
+| restricted-zone entry | 场景区域规则。 | track 与场景区域 mask/ROI 关系。 |
+| climbing / jumping | 动作/姿态变化。 | person track + 可选 railing/fence/stairs 上下文。 |
+
+结论：这些异常 label 不能依赖 LocateAnything 单独检测。它们应由 `对象检测 + tracking + 时序规则/模型` 判断。
+
+### 不确定或不建议依赖的 Label
+
+| Label | 风险 | 建议 |
+| --- | --- | --- |
+| `unknown moving object` | prompt 过泛，容易产生不稳定框。 | 只作为兜底，不进入主实验 prompt。 |
+| `unusual object` | “unusual” 是异常语义，不是视觉类别。 | 不建议作为主 prompt。 |
+| `object being thrown` | 事件描述强，小目标速度快。 | 优先检测具体物体，如 `ball`, `bottle`, `bag`，再结合光流/tracking。 |
+| `vehicle` | 泛化强，可能漏掉小交通工具或产生宽泛框。 | 和 `car/motorcycle/bicycle/scooter` 同时使用。 |
+
+## LocateAnything Prompt 建议
+
+第一阶段不要一次性塞入所有对象。建议分组运行，减少开放词表互相干扰。
+
+主体与交通工具 prompt：
+
+```text
+person</c>bicycle</c>bike</c>motorcycle</c>motorbike</c>scooter</c>car</c>vehicle</c>skateboard
+```
+
+人-物交互 prompt：
+
+```text
+bag</c>backpack</c>handbag</c>suitcase</c>luggage</c>box</c>package</c>cart</c>trolley</c>stroller
+```
+
+场景上下文 prompt：
+
+```text
+bench</c>chair</c>stairs</c>door</c>gate</c>railing</c>fence
+```
+
+第一版实验建议只跑前两组。第三组只用于解释 `climbing`、`loitering`、`restricted-zone entry` 等场景规则异常。
+
 ## 需要检测哪些对象
 
 不要一开始就使用很宽的开放词表。开放词表太大时，LocateAnything 会产生很多和异常无关的背景框，浪费对象 token，也会削弱“压缩非异常对象 token”的研究主张。
