@@ -20,6 +20,12 @@
 
 图 3 说明：高异常分数对象保留完整 visual tokens，中低分对象压缩成 summary tokens 或删除，同时保留轨迹、场景和异常查询等辅助上下文 token。最终喂给 LLM 的是压缩后的视觉 token 序列和少量上下文 token，而不是完整原始 token 或对象框表格。
 
+## 图 4：低异常对象和背景如何处理
+
+![低异常对象和背景 token 处理策略](figures/coat_background_low_score_policy.png)
+
+图 4 说明：COAT 不是只保留高分对象、删除其他所有 token。低异常对象、对象邻域背景和全局场景都需要以不同强度保留 summary tokens。这样 LLM 既能看到异常对象细节，也能获得判断异常所需的场景和上下文。
+
 ## 关键问题：对象上下文到底做什么
 
 对象上下文不是最终输出给用户看的解释，也不是额外堆一个异常检测器。它的作用只有一个：
@@ -76,6 +82,127 @@ score_token(t,h,w) = max_i s_i(t),  if token ∈ T_i(t)
 
 如果 token 不属于任何对象，则作为背景 token，按较低比例采样或汇聚。
 
+## 关键问题：低异常对象和背景怎么处理
+
+COAT 不能只讨论高异常对象如何保留，还必须明确低异常对象和背景的处理方式。否则模型可能虽然保留了异常对象，但丢掉了必要场景信息，导致 LLM 无法判断“这个行为在当前场景是否异常”。
+
+我们把 visual tokens 分成四类：
+
+```text
+1. 高异常对象 tokens
+2. 低异常对象 tokens
+3. 对象邻域背景 tokens
+4. 全局背景 / 场景 tokens
+```
+
+### 1. 低异常对象 tokens
+
+低异常对象不是一律删除，而是根据不确定性和上下文价值处理：
+
+```text
+s_i(t) 低 且 uncertainty 低:
+  删除大部分 token，只保留 0-1 个 object summary token
+
+s_i(t) 低 但 uncertainty 高:
+  保留少量 summary tokens，避免误删潜在异常对象
+
+s_i(t) 低 但与高异常对象相邻:
+  作为上下文对象保留少量 relation summary tokens
+```
+
+例如：
+
+```text
+长椅、椅子、静止背景物体:
+  多数 token 可删除，只保留场景摘要
+
+普通行人:
+  如果远离异常区域且轨迹稳定，可以压缩为少量 summary
+
+包、箱子、车辆:
+  即使当前分数低，也不宜完全删除，保留 summary 以防 abandoned object / vehicle intrusion
+```
+
+### 2. 对象邻域背景 tokens
+
+对象周围背景对异常判断很重要，因为它决定对象行为是否合理：
+
+```text
+车在道路上 vs 车在人行区域
+人躺在草地上 vs 人躺在路中
+包在座椅旁 vs 包在人流通道中央
+```
+
+因此对每个高分或中分对象，需要保留它周围一圈局部背景：
+
+```text
+LocalBG_i(t) = tokens in enlarged_box_i(t) - tokens in box_i(t)
+```
+
+处理策略：
+
+```text
+高异常对象:
+  保留对象 token + 局部背景 token
+
+中异常对象:
+  保留对象 summary + 局部背景 summary
+
+低异常对象:
+  通常不保留局部背景，除非它靠近高异常对象
+```
+
+### 3. 全局背景 / 场景 tokens
+
+全局背景不能完全删除。否则 LLM 可能不知道视频发生在哪种场景中。
+
+但全局背景 token 数量大，所以应该强压缩：
+
+```text
+global_scene_tokens = Pool(background tokens, K_scene)
+```
+
+建议：
+
+```text
+每个 clip 保留 4-16 个全局场景 summary tokens
+每个 scene/camera 可加入一个 scene embedding
+背景 token 不逐 patch 全保留
+```
+
+它的作用是提供：
+
+```text
+场景类型
+人行区域/道路/楼梯/广场
+正常背景分布
+摄像头固定视角先验
+```
+
+### 4. 最终 token 预算分配
+
+建议第一版使用明确预算：
+
+```text
+高异常对象 token:     50%-60%
+中低异常对象 summary: 15%-25%
+局部背景 summary:     10%-15%
+全局场景 summary:      5%-10%
+不确定对象 reserve:    5%-10%
+```
+
+最终送入 LLM 的 token 不是只包含异常对象，而是：
+
+```text
+high-risk object tokens
++ low-risk object summaries
++ local background summaries
++ global scene summaries
++ track/context/query tokens
+```
+
+这样既能压缩 token，又不丢掉异常判断所需的场景依据。
+
 ## 关键问题：是否每一帧都进行 token 压缩
 
 概念上是每一帧都有对象分数和 token mask，但实际实现不一定逐帧独立计算。
@@ -118,6 +245,18 @@ smooth_s_i(t) = EMA(s_i(t-k:t))
 | `q` | 异常语义 query token | 可学习 query，或由异常文本语义初始化 | 查询对象上下文是否异常相关 |
 | `s_i(t)` | 对象异常分数 | `UtilityHead([z_i,h_i,c_i,r_i,q])` | 决定对象 token 保留优先级 |
 | `M(t,h,w)` | token 压缩 mask | 把 `s_i(t)` 映射回 token 网格 | 控制每个 visual token 被保留、汇聚或删除 |
+
+## 背景和低分对象的 token-level 策略
+
+| Token 类型 | 如何识别 | 如何处理 | 为什么 |
+| --- | --- | --- | --- |
+| 高分对象 token | 属于 `s_i(t)` 高的对象框 | 完整保留或高比例保留 | 异常线索主要来源 |
+| 中分对象 token | 属于 `s_i(t)` 中等对象框 | 汇聚为 K 个 summary tokens | 保留语义，减少冗余 |
+| 低分稳定对象 token | `s_i(t)` 低且 uncertainty 低 | 删除或只留 0-1 个 summary | 大概率正常对象 |
+| 低分不确定对象 token | `s_i(t)` 低但检测/轨迹不稳定 | 保留少量 summary | 避免误删潜在异常 |
+| 高分对象邻域背景 | `enlarged_box - box` | 保留或汇聚 | 判断对象是否与场景不匹配 |
+| 全局背景 token | 不属于任何对象框 | 强汇聚成少量 scene tokens | 提供场景类型和摄像头上下文 |
+| 与高分对象相关的低分邻居 | top-k risk neighbor | 保留 relation summary | 支持交互异常判断 |
 
 ## 这个 idea 是否可能 work
 

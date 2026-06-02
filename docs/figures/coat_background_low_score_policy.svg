@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="900" viewBox="0 0 1700 900">
+  <defs>
+    <style>
+      .title { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 34px; font-weight: 800; fill: #0f172a; }
+      .note { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #475569; }
+      .h { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 22px; font-weight: 800; fill: #111827; }
+      .m { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #1f2937; }
+      .s { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 14px; fill: #475569; }
+      .formula { font-family: "Consolas", "Noto Sans SC", monospace; font-size: 15px; fill: #334155; }
+      .panel { fill: #fff; stroke: #cbd5e1; stroke-width: 2; rx: 18; }
+      .orange { fill: #fff7ed; stroke: #ea580c; }
+      .teal { fill: #f0fdfa; stroke: #0f766e; }
+      .blue { fill: #eff6ff; stroke: #2563eb; }
+      .gray { fill: #f8fafc; stroke: #64748b; }
+      .purple { fill: #faf5ff; stroke: #7e22ce; }
+      .arrow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .tokH { fill: #fb923c; stroke: #c2410c; rx: 5; }
+      .tokM { fill: #5eead4; stroke: #0f766e; rx: 5; }
+      .tokB { fill: #93c5fd; stroke: #2563eb; rx: 5; }
+      .tokL { fill: #e5e7eb; stroke: #94a3b8; rx: 5; }
+      .fade { opacity: .25; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#334155"/></marker>
+  </defs>
+  <rect width="1700" height="900" fill="#ffffff"/>
+  <text class="title" x="60" y="58">图 4：低异常对象和背景 token 如何处理</text>
+  <text class="note" x="60" y="90">不能只保留高分对象；低分对象和背景需要以 summary / scene token 形式保留必要上下文。</text>
+
+  <rect class="panel gray" x="70" y="145" width="430" height="610"/>
+  <text class="h" x="145" y="185">ViT token 被分成四类</text>
+  <g transform="translate(115 245)">
+    <text class="m" x="0" y="0">1. 高异常对象 tokens</text>
+    <rect class="tokH" x="0" y="30" width="32" height="32"/>
+    <rect class="tokH" x="42" y="30" width="32" height="32"/>
+    <rect class="tokH" x="84" y="30" width="32" height="32"/>
+    <rect class="tokH" x="126" y="30" width="32" height="32"/>
+    <text class="m" x="0" y="110">2. 低异常对象 tokens</text>
+    <rect class="tokL" x="0" y="140" width="32" height="32"/>
+    <rect class="tokL" x="42" y="140" width="32" height="32"/>
+    <rect class="tokL" x="84" y="140" width="32" height="32"/>
+    <rect class="tokL" x="126" y="140" width="32" height="32"/>
+    <text class="m" x="0" y="220">3. 对象邻域背景 tokens</text>
+    <rect class="tokB" x="0" y="250" width="32" height="32"/>
+    <rect class="tokB" x="42" y="250" width="32" height="32"/>
+    <rect class="tokB" x="84" y="250" width="32" height="32"/>
+    <rect x="28" y="236" width="88" height="60" rx="8" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="6 4"/>
+    <text class="m" x="0" y="335">4. 全局背景 / 场景 tokens</text>
+    <rect class="tokM" x="0" y="365" width="32" height="32"/>
+    <rect class="tokM" x="42" y="365" width="32" height="32"/>
+    <rect class="tokM" x="84" y="365" width="32" height="32"/>
+  </g>
+
+  <path class="arrow" d="M520 450 H600"/>
+
+  <rect class="panel blue" x="620" y="145" width="430" height="610"/>
+  <text class="h" x="730" y="185">处理策略</text>
+
+  <rect class="panel orange" x="670" y="230" width="330" height="95"/>
+  <text class="h" x="705" y="265">高分对象：保留细节</text>
+  <text class="s" x="705" y="295">完整或高比例保留原始 visual tokens</text>
+
+  <rect class="panel gray" x="670" y="360" width="330" height="110"/>
+  <text class="h" x="705" y="395">低分对象：不直接全删</text>
+  <text class="s" x="705" y="425">确定正常：删除 / 0-1 个 summary</text>
+  <text class="s" x="705" y="452">不确定或邻近异常：保留少量 summary</text>
+
+  <rect class="panel purple" x="670" y="505" width="330" height="95"/>
+  <text class="h" x="705" y="540">邻域背景：保留局部场景</text>
+  <text class="formula" x="705" y="570">LocalBG = enlarged_box - box</text>
+
+  <rect class="panel teal" x="670" y="635" width="330" height="95"/>
+  <text class="h" x="705" y="670">全局背景：强汇聚</text>
+  <text class="s" x="705" y="700">每个 clip 保留少量 scene summary tokens</text>
+
+  <path class="arrow" d="M1070 450 H1150"/>
+
+  <rect class="panel teal" x="1170" y="145" width="455" height="610"/>
+  <text class="h" x="1285" y="185">最终 LLM 输入预算</text>
+  <text class="s" x="1245" y="215">示例比例，可在实验中调节</text>
+
+  <g transform="translate(1230 270)">
+    <rect class="tokH" x="0" y="0" width="280" height="38"/>
+    <text class="m" x="18" y="26">高异常对象 tokens：50%-60%</text>
+    <rect class="tokL" x="0" y="72" width="190" height="38"/>
+    <text class="m" x="18" y="98">低分对象摘要：15%-25%</text>
+    <rect class="tokB" x="0" y="144" width="165" height="38"/>
+    <text class="m" x="18" y="170">局部背景：10%-15%</text>
+    <rect class="tokM" x="0" y="216" width="120" height="38"/>
+    <text class="m" x="18" y="242">全局场景：5%-10%</text>
+    <rect x="0" y="288" width="200" height="38" rx="6" fill="#fed7aa" stroke="#ea580c"/>
+    <text class="m" x="18" y="314">不确定 reserve：5%-10%</text>
+  </g>
+
+  <text class="note" x="80" y="830">图内说明：低分对象和背景不是无脑删除；它们被压缩为少量 summary/scene tokens，保留异常判断所需上下文。</text>
+</svg>
