@@ -8,11 +8,15 @@ Schemes define which objects should be tracked and which anomaly types should be
 
 Each dataset keeps its own tracking targets and anomaly types.
 
+Use this when the goal is best per-dataset performance and the downstream model can accept dataset-specific label spaces.
+
 ## Scheme 2
 
 `scheme2_unified_common`
 
 All datasets use the same tracking targets and anomaly types.
+
+Use this when the goal is cross-dataset consistency. The shared tracking targets are `person` and `bicycle`.
 
 ## Future Extension
 
@@ -22,4 +26,3 @@ When adding a new dataset:
 2. Register the dataset in `collection.json`.
 3. Add the dataset policy to each scheme that should support it.
 4. If neither existing scheme fits, create a new scheme folder.
-

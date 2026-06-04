@@ -15,11 +15,27 @@
         "cart"
       ],
       "anomaly_types": [
-        "person_behavior",
+        "person_running",
+        "person_chasing",
+        "person_fighting",
+        "person_falling_or_lying",
+        "person_jumping_or_climbing",
+        "person_loitering_or_reversal",
         "person_interaction",
         "vehicle_or_rideable_intrusion",
         "cart_or_stroller_intrusion"
-      ]
+      ],
+      "anomaly_definitions": {
+        "person_running": "A person moves much faster than the local pedestrian baseline.",
+        "person_chasing": "Two or more people show sustained high-speed following or pursuit.",
+        "person_fighting": "People stay close with abrupt reciprocal motion that suggests conflict.",
+        "person_falling_or_lying": "A person changes from upright motion to a low or horizontal state, or remains lying.",
+        "person_jumping_or_climbing": "A person shows abrupt vertical motion or moves across normally non-walkable structures.",
+        "person_loitering_or_reversal": "A person remains unusually stationary, wanders, or reverses repeatedly in a way that deviates from normal flow.",
+        "person_interaction": "Abnormal close interaction not covered by chasing or fighting.",
+        "vehicle_or_rideable_intrusion": "A bicycle, motorcycle, car, vehicle, or skateboard appears or moves abnormally in a pedestrian scene.",
+        "cart_or_stroller_intrusion": "A cart or stroller appears or moves abnormally in a scene where it is treated as anomaly-relevant."
+      }
     },
     "avenue_test": {
       "tracking_targets": [
@@ -28,10 +44,27 @@
         "thrown object"
       ],
       "anomaly_types": [
-        "person_behavior",
+        "person_running",
+        "person_jumping",
+        "person_falling_or_lying",
+        "person_loitering_or_wrong_direction",
+        "person_object_throwing",
+        "person_abnormal_object_interaction",
+        "bicycle_intrusion_or_abnormal_ride",
         "object_throwing",
         "abnormal_object"
-      ]
+      ],
+      "anomaly_definitions": {
+        "person_running": "A person moves much faster than the normal walkway baseline.",
+        "person_jumping": "A person performs abrupt vertical motion or jumps in the walkway scene.",
+        "person_falling_or_lying": "A person falls, lies down, or remains in a low/horizontal state.",
+        "person_loitering_or_wrong_direction": "A person stays unusually long, wanders, or moves against the dominant walkway flow.",
+        "person_object_throwing": "A person throws an object or shows a clear throwing-like interaction.",
+        "person_abnormal_object_interaction": "A person carries, drops, picks, or manipulates an abnormal visible object.",
+        "bicycle_intrusion_or_abnormal_ride": "A bicycle appears or moves abnormally in the Avenue walkway scene.",
+        "object_throwing": "A thrown object is visible or inferable from person-object motion.",
+        "abnormal_object": "A visible object appears abnormal for the walkway scene, even when its exact class is weak."
+      }
     },
     "nwpu_test": {
       "tracking_targets": [
@@ -44,14 +77,31 @@
         "dog"
       ],
       "anomaly_types": [
-        "person_behavior",
+        "person_running",
+        "person_chasing",
+        "person_fighting",
+        "person_falling_or_lying",
+        "person_jumping_or_climbing",
+        "person_loitering_or_reversal",
         "person_conflict",
         "bag_interaction",
         "cycling_violation",
         "vehicle_violation",
         "animal_intrusion"
-      ]
+      ],
+      "anomaly_definitions": {
+        "person_running": "A person moves much faster than the local campus pedestrian baseline.",
+        "person_chasing": "Two or more people show sustained high-speed following or pursuit.",
+        "person_fighting": "People stay close with abrupt reciprocal motion that suggests conflict.",
+        "person_falling_or_lying": "A person changes from upright motion to a low or horizontal state, or remains lying.",
+        "person_jumping_or_climbing": "A person shows abrupt vertical motion or moves across normally non-walkable structures.",
+        "person_loitering_or_reversal": "A person remains unusually stationary, wanders, or reverses repeatedly in a way that deviates from normal flow.",
+        "person_conflict": "A broader campus conflict event involving one or more tracked people.",
+        "bag_interaction": "An abnormal interaction with a bag-like object when the detector exposes enough evidence.",
+        "cycling_violation": "A bicycle appears or moves abnormally in a pedestrian/campus region.",
+        "vehicle_violation": "A car, motorcycle, bus, or truck appears or moves abnormally in a campus region.",
+        "animal_intrusion": "A dog appears or moves abnormally in the monitored campus scene."
+      }
     }
   }
 }
-

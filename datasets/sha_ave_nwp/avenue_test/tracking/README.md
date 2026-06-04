@@ -2,6 +2,12 @@
 
 Tracking outputs for `avenue_test` are organized by scheme.
 
+Only objects listed by the selected scheme should be tracked.
+
+Scheme 1 targets: `person`, `bicycle`, `thrown object`.
+
+Scheme 2 targets: `person`, `bicycle`.
+
 Expected layout:
 
 ```text

@@ -2,6 +2,12 @@
 
 对象级异常检测与对象 token 压缩实验仓库。
 
+当前本机数据工作目录：
+
+- `datasets/sha_ave_nwp/`
+
+这个目录是当前 ShanghaiTech、Avenue、NWPU 三个测试集的统一工作入口。后续数据集也应扩展到该目录下，而不是继续使用旧的顶层 `datasets/*_test` 入口。
+
 当前设计文档：
 
 - [ShanghaiTech 对象级 Token 压缩方案](docs/SHANGHAITECH_OBJECT_TOKEN_COMPRESSION.md)

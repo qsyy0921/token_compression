@@ -12,9 +12,25 @@
     "cart"
   ],
   "anomaly_types": [
-    "person_behavior",
+    "person_running",
+    "person_chasing",
+    "person_fighting",
+    "person_falling_or_lying",
+    "person_jumping_or_climbing",
+    "person_loitering_or_reversal",
     "person_interaction",
     "vehicle_or_rideable_intrusion",
     "cart_or_stroller_intrusion"
-  ]
+  ],
+  "anomaly_definitions": {
+    "person_running": "A person moves much faster than the local pedestrian baseline.",
+    "person_chasing": "Two or more people show sustained high-speed following or pursuit.",
+    "person_fighting": "People stay close with abrupt reciprocal motion that suggests conflict.",
+    "person_falling_or_lying": "A person changes from upright motion to a low or horizontal state, or remains lying.",
+    "person_jumping_or_climbing": "A person shows abrupt vertical motion or moves across normally non-walkable structures.",
+    "person_loitering_or_reversal": "A person remains unusually stationary, wanders, or reverses repeatedly in a way that deviates from normal flow.",
+    "person_interaction": "Abnormal close interaction not covered by chasing or fighting.",
+    "vehicle_or_rideable_intrusion": "A bicycle, motorcycle, car, vehicle, or skateboard appears or moves abnormally in a pedestrian scene.",
+    "cart_or_stroller_intrusion": "A cart or stroller appears or moves abnormally in a scene where it is treated as anomaly-relevant."
+  }
 }

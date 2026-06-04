@@ -14,7 +14,11 @@
   "extension_policy": {
     "add_dataset": "Create a new sibling dataset folder and register it here.",
     "add_scheme": "Create a new folder under schemes and register it here.",
-    "large_payload_policy": "Do not commit frames, videos, detections, tracks, visualizations, or model outputs."
+    "large_payload_policy": "Keep concrete frames, videos, detections, tracks, visualizations, and model outputs locally inside this collection, but do not commit those large payloads to Git."
+  },
+  "local_payload_policy": {
+    "active_workspace": "datasets/sha_ave_nwp",
+    "closure_goal": "Dataset folders should be usable without relying on external source paths once preparation is complete.",
+    "git_policy": "Git tracks metadata, schemes, scripts, and documentation only. Large payload directories are ignored."
   }
 }
-
