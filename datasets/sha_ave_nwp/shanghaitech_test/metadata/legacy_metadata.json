@@ -1,1 +1,10 @@
-../../shanghaitech_test/metadata.json
+{
+  "dataset": "ShanghaiTech",
+  "split": "test",
+  "frames_root": "/home/expand_disk/code_repository/mfl/yong_task/20260602/data/shanghai/data/testing/frames",
+  "mask_root": "/home/expand_disk/code_repository/mfl/yong_task/20260602/data/shanghai/data/testframemask",
+  "output_root": "/home/expand_disk/code_repository/mfl/yong_task/20260602/outputs/locateanything_shanghai_test",
+  "organized_output_root": "/home/expand_disk/code_repository/mfl/token_compression/datasets/shanghaitech_test/detections",
+  "source_package": "/home/expand_disk/code_repository/mfl/yong_task/20260602",
+  "object_prompt_rationale": "Existing ShanghaiTech labels use the object categories from the 2026-06-02 LocateAnything labeling package."
+}

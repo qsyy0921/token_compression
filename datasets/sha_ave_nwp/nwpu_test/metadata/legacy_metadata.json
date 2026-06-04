@@ -1,1 +1,45 @@
-../../nwpu_test/metadata.json
+{
+  "dataset": "NWPU Campus",
+  "split": "test",
+  "videos_root": "/home/expand_disk/data_repository/mfl/NWPU/videos/videos/Test",
+  "tracking_reference_root": "/home/expand_disk/data_repository/mfl/NWPU/tracking/tracking/NCampus/Test",
+  "frames_root": "/home/expand_disk/code_repository/mfl/token_compression/datasets/nwpu_test/frames",
+  "output_root": "/home/expand_disk/code_repository/mfl/token_compression/datasets/nwpu_test/detections",
+  "work_root": "/home/expand_disk/code_repository/mfl/token_compression/datasets/nwpu_test/work",
+  "source_definition": {
+    "official_page": "https://campusvad.github.io/",
+    "paper": "A New Comprehensive Benchmark for Semi-supervised Video Anomaly Detection and Anticipation, CVPR 2023",
+    "anomaly_count": 28,
+    "anomaly_types": [
+      "climbing fence",
+      "car crossing square",
+      "cycling on footpath",
+      "kicking trash can",
+      "jaywalking",
+      "snatching bag",
+      "crossing lawn",
+      "wrong turn",
+      "cycling on square",
+      "chasing",
+      "loitering",
+      "scuffle",
+      "littering",
+      "forgetting backpack",
+      "u-turn",
+      "battering",
+      "driving on wrong side",
+      "falling",
+      "suddenly stopping cycling in the middle of the road",
+      "group conflict",
+      "climbing tree",
+      "stealing",
+      "illegal parking",
+      "trucks",
+      "dogs",
+      "protest",
+      "playing with water",
+      "photographing in restricted area"
+    ]
+  },
+  "object_prompt_rationale": "The prompt maps NWPU anomaly classes to visible entities: people/groups, cyclists and vehicles, trucks/vans, bags, trash cans, dogs, trees, fences/lawn/grass, cameras/phones, and portable objects."
+}

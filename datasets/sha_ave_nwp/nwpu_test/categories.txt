@@ -1,1 +1,1 @@
-../../nwpu_test/categories.txt
+metadata/categories.txt
