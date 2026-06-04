@@ -34,6 +34,9 @@ datasets/*/tracking_reference
 datasets/*/frames_GT/*.npy
 datasets/*/frames_GT/segments.json
 datasets/*/frames_GT/*.mp4
+datasets/*/frames_GT.bak/*.npy
+datasets/*/frames_GT.bak/segments.json
+datasets/*/frames_GT.bak/*.mp4
 baseline/
 
 # Python

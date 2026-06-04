@@ -2,7 +2,7 @@
 
 ## Goal
 
-Use LocateAnything detections only for Avenue anomaly carriers that can be localized. Avenue abnormal timing comes from `frames_GT/`, and segment details come from `frames_GT/segments.json`.
+Use LocateAnything detections only for Avenue anomaly carriers that can be localized. The previous frame-level and segment annotations have been moved to `frames_GT.bak/` and are no longer active supervision for the redesigned setup.
 
 ## Official Anomaly Definition
 
@@ -31,6 +31,15 @@ Only annotate the following detectable anomaly carriers:
 - `package`
 - `thrown object`
 - `abnormal object`
+
+## Tracking Targets
+
+Only track object categories shared by all three datasets:
+
+- `person`
+- `bicycle`
+
+Do not track `bag`, `backpack`, `handbag`, `suitcase`, `paper`, `box`, or `package` by default. Use them only as attributes/evidence for throwing or abandoned-object cases unless they are clearly detached from people.
 
 Attach these detectable event/state labels to `person` or object tracks:
 

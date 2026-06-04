@@ -1,9 +1,10 @@
 {
   "dataset": "avenue_test",
   "detector": "LocateAnything",
-  "frame_gt_dir": "frames_GT",
+  "frame_gt_dir": "frames_GT.bak",
+  "frame_gt_status": "backup_not_used_for_current_design",
   "detection_dir": "detections",
-  "segment_gt": "frames_GT/segments.json",
+  "segment_gt": "frames_GT.bak/segments.json",
   "official_anomaly_definition": {
     "has_exhaustive_class_list": true,
     "coarse_classes": [
@@ -33,6 +34,10 @@
       "package",
       "thrown object",
       "abnormal object"
+    ],
+    "tracking_targets": [
+      "person",
+      "bicycle"
     ],
     "detect_now": [
       "person",

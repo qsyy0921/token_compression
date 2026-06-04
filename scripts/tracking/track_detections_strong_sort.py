@@ -247,7 +247,9 @@ def crop_histogram(image: np.ndarray | None, bbox: np.ndarray) -> np.ndarray | N
 
 def load_schema_targets(schema_path: Path) -> set[str]:
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    return {str(label).lower() for label in schema["policy"]["annotation_targets"]}
+    policy = schema["policy"]
+    targets = policy.get("tracking_targets") or policy["annotation_targets"]
+    return {str(label).lower() for label in targets}
 
 
 def resolve_frame_path(frames_root: Path, video_id: str, rec: dict[str, Any]) -> Path:

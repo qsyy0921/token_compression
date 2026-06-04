@@ -1,7 +1,8 @@
 {
   "dataset": "nwpu_test",
   "detector": "YOLO26x",
-  "frame_gt_dir": "frames_GT",
+  "frame_gt_dir": "frames_GT.bak",
+  "frame_gt_status": "backup_not_used_for_current_design",
   "detection_dir": "yolo26x_detections",
   "official_anomaly_classes": [
     "climbing fence",
@@ -46,6 +47,10 @@
       "handbag",
       "suitcase",
       "cell phone"
+    ],
+    "tracking_targets": [
+      "person",
+      "bicycle"
     ],
     "detect_now": [
       "person",

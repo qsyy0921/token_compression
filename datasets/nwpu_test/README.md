@@ -18,6 +18,13 @@ Object targets:
 - `suitcase`
 - `cell phone`
 
+Current shared tracking targets:
+
+- `person`
+- `bicycle`
+
+The previous frame-level anomaly annotations are kept only as backup in `frames_GT.bak/` and are not used by the current redesigned tracking/anomaly setup.
+
 Track state/event labels:
 
 - `jaywalking`
@@ -42,4 +49,4 @@ Track state/event labels:
 - `photographing in restricted area`
 - `dogs`
 
-Do not annotate current YOLO-missing objects or regions such as `trash can`, `fence`, `tree`, `lawn`, `grass`, `litter`, `water`, `skateboard`, or `bottle`. Use `frames_GT/` as the authoritative frame-level abnormal label.
+Do not annotate current YOLO-missing objects or regions such as `trash can`, `fence`, `tree`, `lawn`, `grass`, `litter`, `water`, `skateboard`, or `bottle`. Current anomaly design is track-centric and no longer treats the previous frame-level labels as active supervision.

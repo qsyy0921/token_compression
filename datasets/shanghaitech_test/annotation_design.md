@@ -2,7 +2,7 @@
 
 ## Goal
 
-Use LocateAnything detections only for anomaly carriers that this detector can localize. Official frame-level/pixel-level GT remains the source of abnormal time supervision.
+Use LocateAnything detections only for anomaly carriers that this detector can localize. The previous frame-level/pixel-level GT has been moved to `frames_GT.bak/` and is no longer active supervision for the redesigned setup.
 
 ## Official Anomaly Definition
 
@@ -26,6 +26,15 @@ Only annotate the following detectable anomaly carriers:
 - `backpack`
 - `handbag`
 - `suitcase`
+
+## Tracking Targets
+
+Only track object categories shared by all three datasets:
+
+- `person`
+- `bicycle`
+
+Do not track `bag`, `backpack`, `handbag`, or `suitcase` by default. Treat them as person attributes unless they are clearly standalone for many frames.
 
 For person-centric anomalies, attach one of these detectable state labels to the `person` track when the visual evidence is clear:
 

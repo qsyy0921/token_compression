@@ -19,6 +19,13 @@ Object targets:
 - `handbag`
 - `suitcase`
 
+Current shared tracking targets:
+
+- `person`
+- `bicycle`
+
+The previous frame-level anomaly annotations are kept only as backup in `frames_GT.bak/` and are not used by the current redesigned tracking/anomaly setup.
+
 Person-track state labels:
 
 - `running`
@@ -30,4 +37,4 @@ Person-track state labels:
 - `snatching`
 - `robbery`
 
-Use `frames_GT/` as the authoritative frame-level abnormal label. These targets are detection/tracking annotations only, not official ShanghaiTech multi-class GT.
+Current anomaly design is track-centric and no longer treats the previous frame-level labels as active supervision.

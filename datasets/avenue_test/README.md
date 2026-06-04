@@ -18,6 +18,13 @@ Object targets:
 - `thrown object`
 - `abnormal object`
 
+Current shared tracking targets:
+
+- `person`
+- `bicycle`
+
+The previous frame-level anomaly annotations and segment labels are kept only as backup in `frames_GT.bak/` and are not used by the current redesigned tracking/anomaly setup.
+
 Track state labels:
 
 - `running`
@@ -27,4 +34,4 @@ Track state labels:
 - `too close`
 - `bicycle`
 
-Use `frames_GT/` as frame-level abnormal GT. Use `frames_GT/segments.json` for Avenue segment labels. Query aliases such as `running person` are not standalone annotation classes.
+Current anomaly design is track-centric. Query aliases such as `running person` are not standalone annotation classes.

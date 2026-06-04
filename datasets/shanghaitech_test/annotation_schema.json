@@ -1,7 +1,8 @@
 {
   "dataset": "shanghaitech_test",
   "detector": "LocateAnything",
-  "frame_gt_dir": "frames_GT",
+  "frame_gt_dir": "frames_GT.bak",
+  "frame_gt_status": "backup_not_used_for_current_design",
   "detection_dir": "detections",
   "official_anomaly_definition": {
     "has_exhaustive_class_list": false,
@@ -21,6 +22,10 @@
       "backpack",
       "handbag",
       "suitcase"
+    ],
+    "tracking_targets": [
+      "person",
+      "bicycle"
     ],
     "detect_now": [
       "person",

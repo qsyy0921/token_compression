@@ -2,7 +2,7 @@
 
 ## Goal
 
-Use YOLO26x detections only for anomaly carriers that YOLO can reliably localize. Do not force scene objects or action semantics into YOLO labels.
+Use YOLO26x detections only for anomaly carriers that YOLO can reliably localize. The previous frame-level GT has been moved to `frames_GT.bak/` and is no longer active supervision for the redesigned setup.
 
 ## Official NWPU Anomaly Classes
 
@@ -53,6 +53,15 @@ Only annotate the following detectable anomaly carriers:
 
 `cell phone` is included only as evidence for photographing in restricted areas.
 
+## Tracking Targets
+
+Only track object categories shared by all three datasets:
+
+- `person`
+- `bicycle`
+
+Do not track `backpack`, `handbag`, `suitcase`, or `cell phone` by default. Use bags as attributes for person tracks or as standalone evidence only for forgetting/snatching cases; use phone as an attribute/evidence for photographing, not as a normal track.
+
 ## Track State/Event Mapping
 
 - Person track: jaywalking, climbing fence/tree, kicking trash can, crossing lawn, chasing, loitering, scuffle, battering, falling, group conflict, stealing, protest, photographing.
@@ -84,5 +93,5 @@ Do not annotate these in the current YOLO-only version, because the object/regio
 ## Alignment Notes
 
 - Current NWPU labels should be object-track labels, not full anomaly-class labels.
-- Use frame-level GT from `frames_GT/` to identify anomalous intervals, then associate detections/tracks inside those intervals.
+- Previous frame-level GT is kept in `frames_GT.bak/` only as backup; current redesigned tracking does not use it to define anomalous intervals.
 - For action and location anomalies, the detected object is only the carrier; the final anomaly decision must use temporal/location context.
