@@ -1,0 +1,10 @@
+{
+  "dataset": "nwpu_test",
+  "format": "one .npy file per video; 0=normal, 1=abnormal",
+  "source": "/home/expand_disk/data_repository/mfl/NWPU/NWPU_Campus_gt.npz",
+  "num_videos": 242,
+  "num_frames": 384059,
+  "num_abnormal_frames": 65266,
+  "num_normal_frames": 318793,
+  "num_anomalous_videos": 124
+}

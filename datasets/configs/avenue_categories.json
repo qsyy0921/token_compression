@@ -1,0 +1,29 @@
+{
+  "dataset": "avenue",
+  "source_note": "CUHK Avenue defines abnormal events as strange action, wrong direction, and abnormal object; papers and surveys describe examples such as running, throwing objects, loitering, wrong-direction walking, and abnormal carried objects such as bicycles.",
+  "categories": [
+    "person",
+    "pedestrian",
+    "running person",
+    "loitering person",
+    "person walking wrong direction",
+    "bicycle",
+    "bike",
+    "motorcycle",
+    "motorbike",
+    "scooter",
+    "skateboard",
+    "cart",
+    "trolley",
+    "bag",
+    "backpack",
+    "handbag",
+    "suitcase",
+    "luggage",
+    "box",
+    "package",
+    "thrown object",
+    "paper",
+    "abnormal object"
+  ]
+}

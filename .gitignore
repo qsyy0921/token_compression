@@ -15,6 +15,27 @@ wandb/
 packages/
 *.log
 
+# Prepared local dataset payloads and generated labels/tracks
+datasets/*/frames/
+datasets/*/frames
+datasets/*/videos/
+datasets/*/videos
+datasets/*/masks/
+datasets/*/masks
+datasets/*/detections/
+datasets/*/detections
+datasets/*/yolo26x_detections/
+datasets/*/yolo26x_detections
+datasets/*/tracks*/
+datasets/*/work*/
+datasets/*/*work*/
+datasets/*/tracking_reference/
+datasets/*/tracking_reference
+datasets/*/frames_GT/*.npy
+datasets/*/frames_GT/segments.json
+datasets/*/frames_GT/*.mp4
+baseline/
+
 # Python
 __pycache__/
 *.py[cod]

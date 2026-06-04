@@ -1,0 +1,21 @@
+person
+pedestrian
+runner
+running person
+loitering person
+person walking in wrong direction
+bicycle
+bike
+skateboard
+cart
+trolley
+bag
+backpack
+handbag
+suitcase
+luggage
+box
+package
+object
+thrown object
+abnormal object

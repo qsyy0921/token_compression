@@ -7,11 +7,11 @@
 - `models/LocateAnything-3B/`：LocateAnything 模型权重与 remote code。
 - `data/shanghai/data/testing/videos/`：ShanghaiTech test 集 107 个 mp4 视频。
 - `data/shanghai/data/testframemask/`：每个 test 视频对应的帧级异常 mask 标注。
-- `scripts/extract_shanghai_test_frames.py`：从 mp4 自动抽帧。
-- `scripts/locateanything_label_shanghai_test.py`：逐帧运行 LocateAnything 并输出 JSONL 检测结果。
-- `scripts/run_locateanything_multigpu.py`：多 GPU 分片运行入口。
-- `scripts/track_shanghai_objects_iou.py`：label-aware IoU tracking。
-- `scripts/run_tracking_all.py`：对所有检测结果批量 tracking。
+- `scripts/dataset_preparation/extract_shanghai_test_frames.py`：从 mp4 自动抽帧。
+- `scripts/object_detection/locateanything_label_shanghai_test.py`：逐帧运行 LocateAnything 并输出 JSONL 检测结果。
+- `scripts/object_detection/run_locateanything_multigpu.py`：多 GPU 分片运行入口。
+- `scripts/tracking/track_detections_strong_sort.py`：Kalman + Hungarian + IoU/appearance 的强 tracking。
+- `scripts/tracking/run_tracking_all.py`：对所有检测结果批量 tracking。
 
 ## 环境建议
 
@@ -29,7 +29,7 @@ python -m pip install torch transformers==4.57.1 pillow opencv-python-headless l
 推荐用 GPU0 处理前 55 个视频，GPU2 处理剩下 52 个视频：
 
 ```bash
-python scripts/run_locateanything_multigpu.py \
+python scripts/object_detection/run_locateanything_multigpu.py \
   --gpus 0,2 \
   --split-counts 55,52 \
   --extract-frames \
@@ -102,26 +102,22 @@ total_tok_s=当前视频累计输出 token/s
 标注完成后运行：
 
 ```bash
-python scripts/run_tracking_all.py \
-  --detections-root outputs/locateanything_shanghai_test \
-  --output-root outputs/shanghai_iou_tracks \
-  --min-iou 0.25 \
-  --max-age 5
+python scripts/tracking/run_tracking_all.py --datasets shanghaitech_test
 ```
 
 输出：
 
 ```text
-outputs/shanghai_iou_tracks/<video_id>.tracks.jsonl
-outputs/shanghai_iou_tracks/<video_id>.track_summary.json
+datasets/shanghaitech_test/tracks_strong_sort/frames/<video_id>.jsonl
+datasets/shanghaitech_test/tracks_strong_sort/tracks/<video_id>.json
 ```
 
-当前 tracking 是简单的 label-aware IoU tracker。它的优点是可复现、易检查；如果服务器算力允许，后续可以替换成 BoT-SORT、ByteTrack 或 StrongSORT，以追求更好的轨迹质量。
+当前 tracking 是离线 strong-sort-lite tracker，使用常速度 Kalman 预测、Hungarian 匹配、IoU、中心距离、HSV 外观直方图和标签约束。
 
 ## 干跑检查
 
 不真正启动模型，只检查分片：
 
 ```bash
-python scripts/run_locateanything_multigpu.py --gpus 0,2 --split-counts 55,52 --dry-run
+python scripts/object_detection/run_locateanything_multigpu.py --gpus 0,2 --split-counts 55,52 --dry-run
 ```

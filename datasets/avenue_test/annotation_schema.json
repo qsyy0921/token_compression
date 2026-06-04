@@ -1,0 +1,87 @@
+{
+  "dataset": "avenue_test",
+  "detector": "LocateAnything",
+  "frame_gt_dir": "frames_GT",
+  "detection_dir": "detections",
+  "segment_gt": "frames_GT/segments.json",
+  "official_anomaly_definition": {
+    "has_exhaustive_class_list": true,
+    "coarse_classes": [
+      "strange action",
+      "wrong direction",
+      "abnormal object"
+    ],
+    "local_segment_labels": [
+      "running",
+      "throwing",
+      "loitering",
+      "too_close",
+      "bicycle"
+    ],
+    "note": "too_close is from the local segment annotation, not an official coarse class name."
+  },
+  "policy": {
+    "annotation_targets": [
+      "person",
+      "bicycle",
+      "bag",
+      "backpack",
+      "handbag",
+      "suitcase",
+      "paper",
+      "box",
+      "package",
+      "thrown object",
+      "abnormal object"
+    ],
+    "detect_now": [
+      "person",
+      "bicycle",
+      "bag",
+      "backpack",
+      "handbag",
+      "suitcase",
+      "paper",
+      "box",
+      "package",
+      "thrown object",
+      "abnormal object",
+      "running person",
+      "loitering person",
+      "person walking in wrong direction",
+      "person too close to camera"
+    ],
+    "track_state_labels": [
+      "running",
+      "throwing",
+      "loitering",
+      "wrong direction",
+      "too close",
+      "bicycle"
+    ],
+    "query_aliases_not_annotation_categories": [
+      "running person",
+      "loitering person",
+      "person walking in wrong direction",
+      "person too close to camera"
+    ],
+    "event_only": [
+      "running",
+      "throwing",
+      "loitering",
+      "wrong direction",
+      "too close",
+      "bicycle"
+    ],
+    "future_open_vocab": [],
+    "ignore_for_current_detector": []
+  },
+  "box_policy": {
+    "running_loitering_wrong_direction_too_close": "use person box",
+    "throwing": "use person box as primary; thrown object is optional when visible",
+    "bicycle": "use bicycle or cyclist box"
+  },
+  "sources": [
+    "https://www.cse.cuhk.edu.hk/~leojia/projects/detectabnormal/dataset.html"
+  ]
+}
