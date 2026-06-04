@@ -1,6 +1,6 @@
 # Dataset Workspace
 
-This directory organizes dataset payloads, metadata, object detections, tracking outputs, and anomaly schemes for object-centric token compression experiments.
+This directory organizes dataset payloads, metadata, YOLO26x object detections, tracking outputs, and anomaly schemes for object-centric token compression experiments.
 
 ## Current Collection
 
@@ -28,9 +28,11 @@ Old top-level dataset entries are being removed after their payloads are copied 
 
 Current status:
 
-- `shanghaitech_test`: materialized under `sha_ave_nwp/shanghaitech_test`; old top-level entry removed.
-- `nwpu_test`: materialized under `sha_ave_nwp/nwpu_test`; old top-level entry removed.
-- `avenue_test`: frames are materialized under `sha_ave_nwp/avenue_test`; detection repair is in progress for missing frames.
+- `shanghaitech_test`: materialized under `sha_ave_nwp/shanghaitech_test`; YOLO26x detection is running.
+- `avenue_test`: materialized under `sha_ave_nwp/avenue_test`; YOLO26x detection is running.
+- `nwpu_test`: materialized under `sha_ave_nwp/nwpu_test`; YOLO26x detection is complete.
+
+All three datasets use YOLO26x as the active detector. Older LocateAnything detection outputs and work directories are considered stale and should not be used.
 
 ## Dataset Folder Contents
 
@@ -38,8 +40,8 @@ Each dataset folder may contain:
 
 - `frames/`: concrete test frames.
 - `videos/`: raw test videos when available or needed.
-- `detections/` or detector-specific detection folders: one JSONL per test video, one record per frame.
-- `object_detection/`: stable internal links to the active detection results and categories.
+- `object_detection/yolo26x/detections/`: one YOLO26x JSONL per test video, one record per frame.
+- `object_detection/detections`: stable internal link to the active YOLO26x detection results.
 - `tracking/`: per-scheme tracking outputs.
 - `anomaly_types/`: dataset-local copies of supported scheme definitions.
 - `metadata/`: object categories, annotation design, and legacy metadata.

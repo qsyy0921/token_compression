@@ -1,6 +1,6 @@
 # Scheme 1: Dataset-Specific
 
-This scheme is more expressive. Each dataset keeps tracking targets and anomaly types matched to its own detector and anomaly semantics.
+This scheme is more expressive. Each dataset keeps YOLO26x-detectable tracking targets and anomaly types matched to its own scene semantics.
 
 Use this scheme when the goal is best per-dataset performance.
 
@@ -12,10 +12,7 @@ Tracking targets:
 - `bicycle`
 - `motorcycle`
 - `car`
-- `vehicle`
 - `skateboard`
-- `stroller`
-- `cart`
 
 Anomaly types:
 
@@ -27,7 +24,6 @@ Anomaly types:
 - `person_loitering_or_reversal`
 - `person_interaction`
 - `vehicle_or_rideable_intrusion`
-- `cart_or_stroller_intrusion`
 
 ## Avenue Test
 
@@ -35,7 +31,13 @@ Tracking targets:
 
 - `person`
 - `bicycle`
-- `thrown object`
+- `frisbee`
+- `sports ball`
+- `bottle`
+- `backpack`
+- `handbag`
+- `suitcase`
+- `cell phone`
 
 Anomaly types:
 

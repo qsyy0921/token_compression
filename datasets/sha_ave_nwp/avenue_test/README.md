@@ -1,11 +1,11 @@
 # Avenue Test
 
-Avenue uses LocateAnything detections in this project.
+Avenue uses YOLO26x detections in the current project pipeline.
 
 Local payload status:
 
 - `frames/`: materialized in this folder.
-- `detections/`: LocateAnything JSONL files; a repair run is filling missing frames for videos `15`, `20`, and `21`.
+- `object_detection/yolo26x/detections/`: YOLO26x JSONL files; detection is running.
 - `frames_GT.bak/`: old frame-level and segment labels kept only as backup.
 
 This dataset supports both current schemes:
@@ -17,7 +17,13 @@ Scheme 1 tracking targets:
 
 - `person`
 - `bicycle`
-- `thrown object`
+- `frisbee`
+- `sports ball`
+- `bottle`
+- `backpack`
+- `handbag`
+- `suitcase`
+- `cell phone`
 
 Scheme 1 anomaly types:
 

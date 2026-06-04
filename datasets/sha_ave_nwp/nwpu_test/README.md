@@ -7,7 +7,7 @@ Local payload status:
 - `frames/`: materialized extracted frames.
 - `videos/`: materialized raw test videos.
 - `tracking_reference/`: materialized reference tracking files.
-- `yolo26x_detections/`: complete YOLO26x JSONL files, one per test video.
+- `object_detection/yolo26x/detections/`: complete YOLO26x JSONL files, one per test video.
 - `frames_GT.bak/`: old frame-level labels kept only as backup.
 
 This dataset supports both current schemes:

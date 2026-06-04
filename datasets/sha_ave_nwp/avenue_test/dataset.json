@@ -1,34 +1,32 @@
 {
   "dataset": "avenue_test",
-  "detector": "LocateAnything",
+  "detector": "YOLO26x",
   "legacy_dataset_root": "datasets/avenue_test",
   "data_roots": {
     "frames": "datasets/sha_ave_nwp/avenue_test/frames",
-    "detections": "datasets/sha_ave_nwp/avenue_test/detections",
-    "work": "datasets/sha_ave_nwp/avenue_test/work_gpu1_dual",
+    "detections": "datasets/sha_ave_nwp/avenue_test/object_detection/yolo26x/detections",
+    "work": "datasets/sha_ave_nwp/avenue_test/object_detection/yolo26x/work",
     "frame_gt_backup": "datasets/sha_ave_nwp/avenue_test/frames_GT.bak"
   },
   "detectable_objects": [
     "person",
     "bicycle",
-    "bag",
     "backpack",
     "handbag",
     "suitcase",
-    "paper",
-    "box",
-    "package",
-    "thrown object",
-    "abnormal object"
+    "bottle",
+    "cell phone",
+    "frisbee",
+    "sports ball"
   ],
   "evidence_only_objects": [
-    "bag",
     "backpack",
     "handbag",
     "suitcase",
-    "paper",
-    "box",
-    "package"
+    "bottle",
+    "cell phone",
+    "frisbee",
+    "sports ball"
   ],
   "supported_schemes": [
     "scheme1_dataset_specific",

@@ -4,7 +4,13 @@
   "tracking_targets": [
     "person",
     "bicycle",
-    "thrown object"
+    "frisbee",
+    "sports ball",
+    "bottle",
+    "backpack",
+    "handbag",
+    "suitcase",
+    "cell phone"
   ],
   "anomaly_types": [
     "person_running",

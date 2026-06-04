@@ -46,6 +46,8 @@ datasets/sha_ave_nwp/*/masks
 datasets/sha_ave_nwp/*/detections
 datasets/sha_ave_nwp/*/yolo26x_detections
 datasets/sha_ave_nwp/*/yolo26x_work
+datasets/sha_ave_nwp/*/object_detection/yolo26x/detections/
+datasets/sha_ave_nwp/*/object_detection/yolo26x/work/
 datasets/sha_ave_nwp/*/work*
 datasets/sha_ave_nwp/*/tracking_reference
 datasets/sha_ave_nwp/*/frames_GT.bak

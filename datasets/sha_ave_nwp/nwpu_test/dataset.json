@@ -6,8 +6,8 @@
     "frames": "datasets/sha_ave_nwp/nwpu_test/frames",
     "videos": "datasets/sha_ave_nwp/nwpu_test/videos",
     "tracking_reference": "datasets/sha_ave_nwp/nwpu_test/tracking_reference",
-    "detections": "datasets/sha_ave_nwp/nwpu_test/yolo26x_detections",
-    "work": "datasets/sha_ave_nwp/nwpu_test/yolo26x_work",
+    "detections": "datasets/sha_ave_nwp/nwpu_test/object_detection/yolo26x/detections",
+    "work": "datasets/sha_ave_nwp/nwpu_test/object_detection/yolo26x/work",
     "frame_gt_backup": "datasets/sha_ave_nwp/nwpu_test/frames_GT.bak"
   },
   "detectable_objects": [

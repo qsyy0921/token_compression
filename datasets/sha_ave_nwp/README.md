@@ -10,6 +10,8 @@ The directory is designed to be extensible. Future datasets should be added as s
 
 This is the active local data workspace. Concrete payloads should live inside this collection rather than being required through external dataset paths. Git tracks the metadata, scheme files, scripts, and documentation; large payload directories are intentionally ignored.
 
+YOLO26x is the active detector for all three datasets. Older LocateAnything outputs are stale and should not be used for the current tracking pipeline.
+
 ## Directory Layout
 
 ```text
@@ -42,7 +44,8 @@ Each dataset folder should contain:
 - `dataset.json`: dataset metadata, detector, data roots, detectable objects, evidence-only objects, and supported schemes.
 - `README.md`: human-readable notes.
 - `frames/`: local test frames.
-- `detections/` or detector-specific detection folders: local object detection JSONL files.
+- `object_detection/yolo26x/detections/`: local YOLO26x detection JSONL files.
+- `object_detection/detections`: stable internal link to the active YOLO26x detections.
 - `tracking/`: per-scheme tracking outputs.
 - `anomaly_types/`: dataset-local scheme definitions.
 - `metadata/`: categories and annotation notes.
@@ -76,13 +79,13 @@ The old frame-level anomaly annotations are not active supervision for these sch
 
 ## Current Local Status
 
-- `shanghaitech_test`: frames, masks, LocateAnything detections, metadata, old frame GT backup, and scheme definitions are materialized in this collection.
+- `shanghaitech_test`: frames, masks, metadata, old frame GT backup, and scheme definitions are materialized in this collection. YOLO26x detection is running.
 - `nwpu_test`: extracted frames, raw videos, tracking reference files, YOLO26x detections, metadata, old frame GT backup, and scheme definitions are materialized in this collection.
-- `avenue_test`: frames, partial LocateAnything detections, metadata, old frame GT backup, and scheme definitions are in this collection. A repair run is filling the remaining detection frames.
+- `avenue_test`: frames, metadata, old frame GT backup, and scheme definitions are materialized in this collection. YOLO26x detection is running.
 
 ## Scheme Summary
 
-Scheme 1 keeps dataset-specific targets and anomaly labels for best per-dataset performance.
+Scheme 1 keeps dataset-specific YOLO26x-detectable targets and anomaly labels for best per-dataset performance.
 
 Scheme 2 uses the shared tracking targets `person` and `bicycle`, and the shared anomaly labels:
 

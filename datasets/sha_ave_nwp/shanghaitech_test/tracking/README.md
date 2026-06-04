@@ -4,7 +4,7 @@ Tracking outputs for `shanghaitech_test` are organized by scheme.
 
 Only objects listed by the selected scheme should be tracked.
 
-Scheme 1 targets: `person`, `bicycle`, `motorcycle`, `car`, `vehicle`, `skateboard`, `stroller`, `cart`.
+Scheme 1 targets: `person`, `bicycle`, `motorcycle`, `car`, `skateboard`.
 
 Scheme 2 targets: `person`, `bicycle`.
 

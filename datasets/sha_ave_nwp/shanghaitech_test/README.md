@@ -1,12 +1,12 @@
 # ShanghaiTech Test
 
-ShanghaiTech uses LocateAnything detections in this project.
+ShanghaiTech uses YOLO26x detections in the current project pipeline.
 
 Local payload status:
 
 - `frames/`: materialized in this folder.
 - `masks/`: materialized in this folder.
-- `detections/`: materialized LocateAnything JSONL files.
+- `object_detection/yolo26x/detections/`: YOLO26x JSONL files; detection is running.
 - `frames_GT.bak/`: old frame-level labels kept only as backup.
 
 This dataset supports both current schemes:
@@ -20,10 +20,7 @@ Scheme 1 tracking targets:
 - `bicycle`
 - `motorcycle`
 - `car`
-- `vehicle`
 - `skateboard`
-- `stroller`
-- `cart`
 
 Scheme 1 anomaly types:
 
@@ -35,6 +32,5 @@ Scheme 1 anomaly types:
 - `person_loitering_or_reversal`
 - `person_interaction`
 - `vehicle_or_rideable_intrusion`
-- `cart_or_stroller_intrusion`
 
 Old frame-level anomaly labels are not active supervision in the redesigned setup.
