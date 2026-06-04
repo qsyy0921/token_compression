@@ -1,0 +1,21 @@
+{
+  "scheme": "scheme1_dataset_specific",
+  "dataset": "nwpu_test",
+  "tracking_targets": [
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "bus",
+    "truck",
+    "dog"
+  ],
+  "anomaly_types": [
+    "person_behavior",
+    "person_conflict",
+    "bag_interaction",
+    "cycling_violation",
+    "vehicle_violation",
+    "animal_intrusion"
+  ]
+}

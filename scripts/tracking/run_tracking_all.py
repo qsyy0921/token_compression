@@ -11,19 +11,16 @@ from pathlib import Path
 
 DATASET_CONFIGS = {
     "shanghaitech_test": {
-        "dataset_root": "datasets/shanghaitech_test",
-        "detections_dir": "datasets/shanghaitech_test/detections",
-        "output_dir": "datasets/shanghaitech_test/tracks_strong_sort",
+        "dataset_root": "datasets/sha_ave_nwp/shanghaitech_test",
+        "detections_dir": "datasets/sha_ave_nwp/shanghaitech_test/object_detection/detections",
     },
     "avenue_test": {
-        "dataset_root": "datasets/avenue_test",
-        "detections_dir": "datasets/avenue_test/detections",
-        "output_dir": "datasets/avenue_test/tracks_strong_sort",
+        "dataset_root": "datasets/sha_ave_nwp/avenue_test",
+        "detections_dir": "datasets/sha_ave_nwp/avenue_test/object_detection/detections",
     },
     "nwpu_test": {
-        "dataset_root": "datasets/nwpu_test",
-        "detections_dir": "datasets/nwpu_test/yolo26x_detections",
-        "output_dir": "datasets/nwpu_test/tracks_strong_sort",
+        "dataset_root": "datasets/sha_ave_nwp/nwpu_test",
+        "detections_dir": "datasets/sha_ave_nwp/nwpu_test/object_detection/detections",
     },
 }
 
@@ -41,6 +38,7 @@ def parse_args() -> argparse.Namespace:
         default="/home/lcwt/.conda/envs/token_pruner_merge/bin/python",
     )
     parser.add_argument("--no-appearance", action="store_true")
+    parser.add_argument("--scheme-config", default=None)
     return parser.parse_args()
 
 
@@ -48,8 +46,17 @@ def main() -> None:
     args = parse_args()
     root = Path(__file__).resolve().parents[2]
     tracker = root / "scripts" / "tracking" / "track_detections_strong_sort.py"
+    scheme_name = "default_schema"
+    if args.scheme_config:
+        import json
+
+        scheme_path = root / args.scheme_config
+        if not scheme_path.exists():
+            scheme_path = Path(args.scheme_config)
+        scheme_name = json.loads(scheme_path.read_text(encoding="utf-8"))["scheme"]
     for dataset in args.datasets:
         cfg = DATASET_CONFIGS[dataset]
+        output_dir = f"datasets/sha_ave_nwp/{dataset}/tracking/{scheme_name}"
         cmd = [
             args.python,
             str(tracker),
@@ -58,10 +65,12 @@ def main() -> None:
             "--detections-dir",
             cfg["detections_dir"],
             "--output-dir",
-            cfg["output_dir"],
+            output_dir,
         ]
         if args.no_appearance:
             cmd.append("--no-appearance")
+        if args.scheme_config:
+            cmd.extend(["--scheme-config", args.scheme_config])
         print(" ".join(cmd), flush=True)
         subprocess.run(cmd, cwd=root, check=True)
 

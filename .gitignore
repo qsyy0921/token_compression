@@ -39,6 +39,21 @@ datasets/*/frames_GT.bak/segments.json
 datasets/*/frames_GT.bak/*.mp4
 baseline/
 
+# Local payload links under extensible dataset collections
+datasets/sha_ave_nwp/*/frames
+datasets/sha_ave_nwp/*/videos
+datasets/sha_ave_nwp/*/masks
+datasets/sha_ave_nwp/*/detections
+datasets/sha_ave_nwp/*/yolo26x_detections
+datasets/sha_ave_nwp/*/yolo26x_work
+datasets/sha_ave_nwp/*/work*
+datasets/sha_ave_nwp/*/tracking_reference
+datasets/sha_ave_nwp/*/frames_GT.bak
+datasets/sha_ave_nwp/*/tracking/*/frames/
+datasets/sha_ave_nwp/*/tracking/*/tracks/
+datasets/sha_ave_nwp/*/tracking/*/visualizations/
+datasets/sha_ave_nwp/*/tracking/*/run_summary.json
+
 # Python
 __pycache__/
 *.py[cod]

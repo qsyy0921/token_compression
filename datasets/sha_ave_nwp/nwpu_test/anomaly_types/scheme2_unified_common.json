@@ -1,0 +1,13 @@
+{
+  "scheme": "scheme2_unified_common",
+  "dataset": "nwpu_test",
+  "tracking_targets": [
+    "person",
+    "bicycle"
+  ],
+  "anomaly_types": [
+    "person_behavior_anomaly",
+    "bicycle_anomaly",
+    "person_object_interaction"
+  ]
+}

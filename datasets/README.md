@@ -1,12 +1,30 @@
 # Dataset Object Labels
 
-This directory organizes LocateAnything pseudo labels for the object-centric token compression experiments.
+This directory organizes dataset metadata and pseudo labels for object-centric token compression experiments.
+
+## Current Collection
+
+The current extensible collection entry point is:
+
+- `sha_ave_nwp/`
+
+It contains:
+
+- `shanghaitech_test/`
+- `avenue_test/`
+- `nwpu_test/`
+- `schemes/scheme1_dataset_specific/`
+- `schemes/scheme2_unified_common/`
+
+Future datasets should be added under `sha_ave_nwp/` and registered in `sha_ave_nwp/collection.json`.
 
 ## Layout
 
-- `shanghaitech_test/`: existing ShanghaiTech test labels from the 2026-06-02 labeling package.
-- `avenue_test/`: CUHK Avenue testing frames and LocateAnything labels.
-- `nwpu_test/`: NWPU Campus testing videos, extracted frames, tracking references, and LocateAnything labels.
+The older top-level dataset folders are still used as local data roots by running jobs:
+
+- `shanghaitech_test/`
+- `avenue_test/`
+- `nwpu_test/`
 
 Each dataset directory contains:
 

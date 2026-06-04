@@ -1,0 +1,35 @@
+{
+  "dataset": "shanghaitech_test",
+  "detector": "LocateAnything",
+  "legacy_dataset_root": "datasets/shanghaitech_test",
+  "data_roots": {
+    "frames": "datasets/sha_ave_nwp/shanghaitech_test/frames",
+    "detections": "datasets/sha_ave_nwp/shanghaitech_test/detections",
+    "masks": "datasets/sha_ave_nwp/shanghaitech_test/masks",
+    "frame_gt_backup": "datasets/sha_ave_nwp/shanghaitech_test/frames_GT.bak"
+  },
+  "detectable_objects": [
+    "person",
+    "bicycle",
+    "motorcycle",
+    "car",
+    "vehicle",
+    "skateboard",
+    "stroller",
+    "cart",
+    "bag",
+    "backpack",
+    "handbag",
+    "suitcase"
+  ],
+  "evidence_only_objects": [
+    "bag",
+    "backpack",
+    "handbag",
+    "suitcase"
+  ],
+  "supported_schemes": [
+    "scheme1_dataset_specific",
+    "scheme2_unified_common"
+  ]
+}

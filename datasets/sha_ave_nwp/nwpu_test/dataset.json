@@ -1,0 +1,36 @@
+{
+  "dataset": "nwpu_test",
+  "detector": "YOLO26x",
+  "legacy_dataset_root": "datasets/nwpu_test",
+  "data_roots": {
+    "frames": "datasets/sha_ave_nwp/nwpu_test/frames",
+    "videos": "datasets/sha_ave_nwp/nwpu_test/videos",
+    "tracking_reference": "datasets/sha_ave_nwp/nwpu_test/tracking_reference",
+    "detections": "datasets/sha_ave_nwp/nwpu_test/yolo26x_detections",
+    "work": "datasets/sha_ave_nwp/nwpu_test/yolo26x_work",
+    "frame_gt_backup": "datasets/sha_ave_nwp/nwpu_test/frames_GT.bak"
+  },
+  "detectable_objects": [
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "bus",
+    "truck",
+    "dog",
+    "backpack",
+    "handbag",
+    "suitcase",
+    "cell phone"
+  ],
+  "evidence_only_objects": [
+    "backpack",
+    "handbag",
+    "suitcase",
+    "cell phone"
+  ],
+  "supported_schemes": [
+    "scheme1_dataset_specific",
+    "scheme2_unified_common"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "scheme": "scheme1_dataset_specific",
+  "dataset": "avenue_test",
+  "tracking_targets": [
+    "person",
+    "bicycle",
+    "thrown object"
+  ],
+  "anomaly_types": [
+    "person_behavior",
+    "object_throwing",
+    "abnormal_object"
+  ]
+}

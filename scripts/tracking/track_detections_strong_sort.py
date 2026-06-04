@@ -245,7 +245,15 @@ def crop_histogram(image: np.ndarray | None, bbox: np.ndarray) -> np.ndarray | N
     return (hist / norm).astype(np.float32)
 
 
-def load_schema_targets(schema_path: Path) -> set[str]:
+def load_schema_targets(schema_path: Path, scheme_config: Path | None, dataset_name: str) -> set[str]:
+    if scheme_config is not None:
+        scheme = json.loads(scheme_config.read_text(encoding="utf-8"))
+        if "datasets" in scheme and dataset_name in scheme["datasets"]:
+            targets = scheme["datasets"][dataset_name]["tracking_targets"]
+        else:
+            targets = scheme["tracking_targets"]
+        return {str(label).lower() for label in targets}
+
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     policy = schema["policy"]
     targets = policy.get("tracking_targets") or policy["annotation_targets"]
@@ -517,6 +525,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--detections-dir", type=Path, default=None)
     parser.add_argument("--frames-root", type=Path, default=None)
     parser.add_argument("--schema", type=Path, default=None)
+    parser.add_argument("--scheme-config", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--video-list", type=Path, default=None)
     parser.add_argument("--min-area", type=float, default=16.0)
@@ -545,7 +554,8 @@ def main() -> None:
     out_dir = args.output_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    allowed_labels = load_schema_targets(schema_path)
+    dataset_name = dataset_root.name
+    allowed_labels = load_schema_targets(schema_path, args.scheme_config, dataset_name)
     if args.video_list:
         wanted = {line.strip() for line in args.video_list.read_text().splitlines() if line.strip()}
         det_files = [detections_dir / f"{video}.jsonl" for video in sorted(wanted)]
@@ -583,6 +593,7 @@ def main() -> None:
         "detections_dir": str(detections_dir),
         "frames_root": str(frames_root),
         "schema": str(schema_path),
+        "scheme_config": str(args.scheme_config) if args.scheme_config else None,
         "output_dir": str(out_dir),
         "allowed_annotation_targets": sorted(allowed_labels),
         "num_videos": len(all_stats),

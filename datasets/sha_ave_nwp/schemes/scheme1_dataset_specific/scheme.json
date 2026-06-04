@@ -1,0 +1,57 @@
+{
+  "scheme": "scheme1_dataset_specific",
+  "uses_previous_frame_gt": false,
+  "description": "Each dataset keeps its own tracking objects and anomaly types.",
+  "datasets": {
+    "shanghaitech_test": {
+      "tracking_targets": [
+        "person",
+        "bicycle",
+        "motorcycle",
+        "car",
+        "vehicle",
+        "skateboard",
+        "stroller",
+        "cart"
+      ],
+      "anomaly_types": [
+        "person_behavior",
+        "person_interaction",
+        "vehicle_or_rideable_intrusion",
+        "cart_or_stroller_intrusion"
+      ]
+    },
+    "avenue_test": {
+      "tracking_targets": [
+        "person",
+        "bicycle",
+        "thrown object"
+      ],
+      "anomaly_types": [
+        "person_behavior",
+        "object_throwing",
+        "abnormal_object"
+      ]
+    },
+    "nwpu_test": {
+      "tracking_targets": [
+        "person",
+        "bicycle",
+        "car",
+        "motorcycle",
+        "bus",
+        "truck",
+        "dog"
+      ],
+      "anomaly_types": [
+        "person_behavior",
+        "person_conflict",
+        "bag_interaction",
+        "cycling_violation",
+        "vehicle_violation",
+        "animal_intrusion"
+      ]
+    }
+  }
+}
+

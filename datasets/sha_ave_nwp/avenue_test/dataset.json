@@ -1,0 +1,37 @@
+{
+  "dataset": "avenue_test",
+  "detector": "LocateAnything",
+  "legacy_dataset_root": "datasets/avenue_test",
+  "data_roots": {
+    "frames": "datasets/sha_ave_nwp/avenue_test/frames",
+    "detections": "datasets/sha_ave_nwp/avenue_test/detections",
+    "work": "datasets/sha_ave_nwp/avenue_test/work_gpu1_dual",
+    "frame_gt_backup": "datasets/sha_ave_nwp/avenue_test/frames_GT.bak"
+  },
+  "detectable_objects": [
+    "person",
+    "bicycle",
+    "bag",
+    "backpack",
+    "handbag",
+    "suitcase",
+    "paper",
+    "box",
+    "package",
+    "thrown object",
+    "abnormal object"
+  ],
+  "evidence_only_objects": [
+    "bag",
+    "backpack",
+    "handbag",
+    "suitcase",
+    "paper",
+    "box",
+    "package"
+  ],
+  "supported_schemes": [
+    "scheme1_dataset_specific",
+    "scheme2_unified_common"
+  ]
+}

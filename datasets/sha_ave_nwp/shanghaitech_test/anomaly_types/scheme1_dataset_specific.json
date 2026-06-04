@@ -1,0 +1,20 @@
+{
+  "scheme": "scheme1_dataset_specific",
+  "dataset": "shanghaitech_test",
+  "tracking_targets": [
+    "person",
+    "bicycle",
+    "motorcycle",
+    "car",
+    "vehicle",
+    "skateboard",
+    "stroller",
+    "cart"
+  ],
+  "anomaly_types": [
+    "person_behavior",
+    "person_interaction",
+    "vehicle_or_rideable_intrusion",
+    "cart_or_stroller_intrusion"
+  ]
+}

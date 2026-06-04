@@ -1,0 +1,20 @@
+{
+  "collection": "sha_ave_nwp",
+  "description": "Current video anomaly dataset collection: ShanghaiTech, Avenue, and NWPU.",
+  "version": 1,
+  "datasets": [
+    "shanghaitech_test",
+    "avenue_test",
+    "nwpu_test"
+  ],
+  "schemes": [
+    "scheme1_dataset_specific",
+    "scheme2_unified_common"
+  ],
+  "extension_policy": {
+    "add_dataset": "Create a new sibling dataset folder and register it here.",
+    "add_scheme": "Create a new folder under schemes and register it here.",
+    "large_payload_policy": "Do not commit frames, videos, detections, tracks, visualizations, or model outputs."
+  }
+}
+

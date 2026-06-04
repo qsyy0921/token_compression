@@ -1,0 +1,50 @@
+{
+  "scheme": "scheme2_unified_common",
+  "uses_previous_frame_gt": false,
+  "description": "All datasets use the same tracking objects and anomaly types.",
+  "tracking_targets": [
+    "person",
+    "bicycle"
+  ],
+  "anomaly_types": [
+    "person_behavior_anomaly",
+    "bicycle_anomaly",
+    "person_object_interaction"
+  ],
+  "datasets": {
+    "shanghaitech_test": {
+      "tracking_targets": [
+        "person",
+        "bicycle"
+      ],
+      "anomaly_types": [
+        "person_behavior_anomaly",
+        "bicycle_anomaly",
+        "person_object_interaction"
+      ]
+    },
+    "avenue_test": {
+      "tracking_targets": [
+        "person",
+        "bicycle"
+      ],
+      "anomaly_types": [
+        "person_behavior_anomaly",
+        "bicycle_anomaly",
+        "person_object_interaction"
+      ]
+    },
+    "nwpu_test": {
+      "tracking_targets": [
+        "person",
+        "bicycle"
+      ],
+      "anomaly_types": [
+        "person_behavior_anomaly",
+        "bicycle_anomaly",
+        "person_object_interaction"
+      ]
+    }
+  }
+}
+
