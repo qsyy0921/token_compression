@@ -35,6 +35,16 @@ def read_track_frames(track_file: Path) -> list[dict]:
     return rows
 
 
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+
+
+def frame_sort_key(path: Path) -> tuple[int, str]:
+    try:
+        return int(path.stem), path.name
+    except ValueError:
+        return 0, path.name
+
+
 def render_video(
     video_id: str,
     frames_root: Path,
@@ -45,7 +55,10 @@ def render_video(
 ) -> None:
     rows = read_track_frames(tracks_file)
     frame_dir = frames_root / video_id
-    frame_paths = sorted(frame_dir.glob("*.jpg"))
+    frame_paths = sorted(
+        [path for path in frame_dir.iterdir() if path.suffix.lower() in IMAGE_EXTENSIONS],
+        key=frame_sort_key,
+    )
     if not frame_paths:
         raise FileNotFoundError(f"No frames found in {frame_dir}")
 
@@ -114,15 +127,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-root", type=Path, default=None)
     parser.add_argument("--videos", nargs="*", default=None)
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--all", action="store_true", help="Render every tracking JSONL file.")
     parser.add_argument("--fps", type=float, default=24.0)
     parser.add_argument("--draw-interpolated", action="store_true")
     return parser.parse_args()
 
 
-def pick_videos(tracks_root: Path, videos: list[str] | None, top_k: int) -> list[str]:
+def pick_videos(tracks_root: Path, videos: list[str] | None, top_k: int, render_all: bool) -> list[str]:
     frames_dir = tracks_root / "frames"
     if videos:
         return videos
+    if render_all:
+        return [path.stem for path in sorted(frames_dir.glob("*.jsonl"))]
     counts = []
     for p in sorted(frames_dir.glob("*.jsonl")):
         count = 0
@@ -140,7 +156,7 @@ def pick_videos(tracks_root: Path, videos: list[str] | None, top_k: int) -> list
 def main() -> None:
     args = parse_args()
     output_root = args.output_root or args.tracks_root / "visualizations"
-    videos = pick_videos(args.tracks_root, args.videos, args.top_k)
+    videos = pick_videos(args.tracks_root, args.videos, args.top_k, args.all)
     for video_id in videos:
         tracks_file = args.tracks_root / "frames" / f"{video_id}.jsonl"
         output_path = output_root / video_id / f"{video_id}_tracking.mp4"
