@@ -27,8 +27,8 @@ COLORS = {
 RESULTS = [
     ("Baseline full 720p", "11960 -> 11960", "walking / high", (82, 82, 82)),
     ("Spatial ROI-aware", "11960 -> 3178", "walking / high", (66, 135, 245)),
-    ("Motion-focus 136-166", "11960 -> 353", "running / 0.98", (34, 178, 104)),
-    ("Negative focus 220-260", "11960 -> 497", "walking / 0.98", (205, 139, 45)),
+    ("Motion-focus 136-166", "11960 -> 353", "running / self-report 0.98", (34, 178, 104)),
+    ("Negative focus 220-260", "11960 -> 497", "walking / self-report 0.98", (205, 139, 45)),
 ]
 
 
@@ -293,7 +293,7 @@ def make_chinese_summary(out_path):
 
     box(1064, 150, 460, 230, "运动聚焦 Token 压缩", COLORS["target"])
     draw.text((1102, 220), "视觉 token：11960 -> 353", fill=(58, 66, 76), font=FONT_18)
-    draw.text((1102, 260), "输出：running / 0.98", fill=(22, 116, 66), font=FONT_22)
+    draw.text((1102, 260), "输出：running，自报告0.98", fill=(22, 116, 66), font=FONT_22)
     draw.text((1102, 310), "保留 frames 136-166 的 ID50 关键运动 token，压缩非关键 token。", fill=(78, 86, 96), font=FONT_16)
 
     draw.line((520, 265, 555, 265), fill=(120, 130, 142), width=4)
@@ -317,8 +317,8 @@ def make_chinese_summary(out_path):
     draw.text((760, 450), "关键对照", fill=(26, 32, 40), font=FONT_28)
     rows = [
         ("完整视频 baseline", "walking / high", (100, 108, 118)),
-        ("运动聚焦 136-166", "running / 0.98", COLORS["target"]),
-        ("负对照 220-260", "walking / 0.98", (205, 139, 45)),
+        ("运动聚焦 136-166", "running，自报告0.98", COLORS["target"]),
+        ("负对照 220-260", "walking，自报告0.98", (205, 139, 45)),
     ]
     y = 512
     for label, result, color in rows:
@@ -448,7 +448,7 @@ def make_token_compression_mechanism(out_path):
     draw.rounded_rectangle((1160, 598, 1490, 660), radius=14, fill=(238, 241, 246), outline=(205, 212, 222))
     draw.text((1188, 616), "baseline: walking / high", fill=(42, 48, 56), font=FONT_22)
     draw.rounded_rectangle((1160, 690, 1490, 752), radius=14, fill=(223, 250, 233), outline=COLORS["target"])
-    draw.text((1188, 708), "compressed: running / 0.98", fill=(24, 104, 60), font=FONT_22)
+    draw.text((1188, 708), "compressed: running / self-report 0.98", fill=(24, 104, 60), font=FONT_22)
 
     # Legend
     legend_y = 858

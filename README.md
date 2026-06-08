@@ -12,8 +12,8 @@
 
 - 完整视频 720p baseline：`walking, high`
 - 完整视频 720p，仅空间 ROI 压缩：`walking, high`
-- 完整视频 720p，运动时段聚焦 token 压缩：`running, 0.98`
-- 负对照：同样压缩但聚焦后段慢速窗口：`walking, 0.98`
+- 完整视频 720p，运动时段聚焦 token 压缩：`running`，模型自报告 confidence 为 `0.98`
+- 负对照：同样压缩但聚焦后段慢速窗口：`walking`，模型自报告 confidence 为 `0.98`
 
 完整报告见：
 

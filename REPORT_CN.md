@@ -99,8 +99,10 @@ Focus on tracking ID 50 in the video. Classify the motion of tracking ID 50 as o
 | --- | ---: | ---: | --- |
 | 完整视频 baseline，不做 token 压缩 | `11960 -> 11960` | `12156 -> 12156` | `walking, high` |
 | 仅空间 ROI-aware 压缩 | `11960 -> 3178` | `12156 -> 3374` | `walking, high` |
-| 运动时段聚焦压缩，保留 frames `136-166` | `11960 -> 353` | `12156 -> 549` | `running, 0.98` |
-| 负对照：聚焦后段慢速 frames `220-260` | `11960 -> 497` | `12156 -> 693` | `walking, 0.98` |
+| 运动时段聚焦压缩，保留 frames `136-166` | `11960 -> 353` | `12156 -> 549` | `running`，模型自报告 confidence 为 `0.98` |
+| 负对照：聚焦后段慢速 frames `220-260` | `11960 -> 497` | `12156 -> 693` | `walking`，模型自报告 confidence 为 `0.98` |
+
+注意：这里的 `0.98` 是 Qwen3-VL 根据 prompt 生成的 confidence 文本，不是从 logits/softmax 计算出的校准概率。它只能作为模型自我评估强度，不能等同于统计意义上的置信度。
 
 ## 7. 正例可视化：保留关键 running 时间窗
 
@@ -128,7 +130,8 @@ figures/id50_720p_token_compression/id50_running_focus_overlay.mp4
 结果仍然是：
 
 ```text
-walking, 0.98
+walking
+0.98
 ```
 
 ![负对照：慢速时间窗](figures/id50_720p_token_compression/id50_walking_negative_control_sheet.jpg)
@@ -158,10 +161,14 @@ figures/id50_720p_token_compression/id50_walking_negative_control_overlay.mp4
    只压缩其他人和背景，但保留完整时间轴，模型仍然输出 `walking`。这说明长视频中的正常时间段也会稀释关键 running 证据。
 
 3. **运动感知 token 压缩可以改变模型判断。**  
-   当保留 ID50 在 frames `136-166` 的关键运动 token，并强压缩非关键 token 后，模型输出 `running, 0.98`。
+   当保留 ID50 在 frames `136-166` 的关键运动 token，并强压缩非关键 token 后，模型输出 `running`，并自报告 confidence 为 `0.98`。
 
 4. **负对照排除了简单压缩伪影。**  
-   同样压缩机制聚焦后段慢速窗口时，模型输出 `walking, 0.98`，说明不是“压缩必然导致 running”。
+   同样压缩机制聚焦后段慢速窗口时，模型输出 `walking`，并自报告 confidence 为 `0.98`，说明不是“压缩必然导致 running”。
+
+关于 confidence 的解释：
+
+> `0.98` 来自模型在开放式生成中的第二行文本输出。因为 prompt 要求返回 `label, confidence, evidence` 三行，模型在生成 `running` 之后继续生成了 `0.98`。这个数字反映的是模型自报告的判断强度，而不是我们额外计算的概率。若要得到更严格的概率型分数，需要改成候选标签约束打分，例如分别计算 `running / jogging / fast walking / walking / uncertain` 的归一化 log-likelihood。
 
 因此，更准确的表述是：
 
