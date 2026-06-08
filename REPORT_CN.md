@@ -173,7 +173,7 @@ new_feature_j = mean(original_features[group_j])
 
 ## 8. 正例可视化：frames 136-166
 
-绿色表示 ID50 token 保留；红色表示其他行人 token 删除；蓝色表示背景 token 平均池化；黄色框表示 ID50 扩张 ROI。该窗口中 ID50 呈现更强步幅、更明显摆臂和近似离地姿态。
+下图左侧是原始 tracking 可视化，右侧是在同一帧上叠加的 token 策略背景。右侧每个彩色小格对应一个 40x23 LLM 视觉 token cell：绿色表示 ID50 token 保留；红色表示其他行人 token 删除；蓝色表示背景 token 进入 2x2 average merge；黄色框表示 ID50 扩张 ROI。该窗口中 ID50 呈现更强步幅、更明显摆臂和近似离地姿态。
 
 ![正例可视化：保留 frames 136-166 的 ID50 关键运动 token。](assets/id50_running_focus_sheet.jpg)
 
@@ -185,7 +185,7 @@ new_feature_j = mean(original_features[group_j])
 
 ## 9. 负对照可视化：frames 220-260
 
-同样的压缩机制聚焦后段慢速窗口时，模型仍输出 `walking`。这说明 `running` 不是强压缩本身诱导出来的，而是关键运动窗口中的视觉证据导致的。
+负对照图使用同样的 token 策略背景画法：绿色仍然保留 ID50 token，红色仍然删除其他行人 token，蓝色仍然对背景 token 做 2x2 average merge。区别只在于聚焦窗口换成 frames `220-260` 的慢速片段。模型仍输出 `walking`，说明 `running` 不是强压缩本身诱导出来的，而是 frames `136-166` 关键运动窗口中的视觉证据导致的。
 
 ![负对照可视化：frames 220-260，步态更平稳，输出 walking。](assets/id50_walking_negative_control_sheet.jpg)
 
