@@ -1,20 +1,32 @@
-# token_compression
+# ID50 运动聚焦 Token 压缩实验验证
 
-对象级异常检测与对象 token 压缩实验仓库。
+这个仓库目前只保留最近一次实验验证报告、可视化结果和复现实验脚本。
 
-当前本机数据工作目录：
+核心问题：
 
-- `datasets/sha_ave_nwp/`
+> 在多对象、长视频场景中，异常对象的关键运动证据会被其他人、背景和正常时间片稀释。通过目标感知、运动感知的 token 压缩，能否让大模型从原本判断失败的完整视频中识别出异常行为？
 
-这个目录是当前 ShanghaiTech、Avenue、NWPU 三个测试集的统一工作入口。后续数据集也应扩展到该目录下，而不是继续使用旧的顶层 `datasets/*_test` 入口。
+本案例使用 Qwen3-VL-8B 分析 ShanghaiTech 测试视频 `08_0044` 中 tracking ID `50` 是否在 running。
 
-当前设计文档：
+结论摘要：
 
-- [ShanghaiTech 对象级 Token 压缩方案](docs/SHANGHAITECH_OBJECT_TOKEN_COMPRESSION.md)
-- [对象条件化 Anomaly Query 设计](docs/ANOMALY_QUERY_DESIGN.md)
-- [Object Query 之前的异常测试方案](docs/BASELINE_ANOMALY_TESTS_BEFORE_QUERY.md)
-- [低算力 / Training-Free VAD 相关论文与可行路线](docs/TRAINING_FREE_LIGHTWEIGHT_VAD_LITERATURE.md)
-- [基于 Qwen3-VL-8B 的对象风险 Token 删除方案](docs/QWEN3VL_OBJECT_TOKEN_PRUNING_PLAN.md)
-- [对象异常分数与 Token 删除策略](docs/OBJECT_ANOMALY_SCORE_FOR_TOKEN_PRUNING.md)
-- [没有对象级 Label 时的监督构造策略](docs/NO_OBJECT_LABEL_STRATEGY.md)
-- [LocateAnything 对 ShanghaiTech Label 的支持矩阵](docs/LOCATEANYTHING_LABEL_SUPPORT_MATRIX.md)
+- 完整视频 720p baseline：`walking, high`
+- 完整视频 720p，仅空间 ROI 压缩：`walking, high`
+- 完整视频 720p，运动时段聚焦 token 压缩：`running, 0.98`
+- 负对照：同样压缩但聚焦后段慢速窗口：`walking, 0.98`
+
+完整报告见：
+
+[中文实验验证报告](REPORT_CN.md)
+
+注意：GitHub 仓库只保留报告、可视化和脚本。复现实验需要本地已有 Qwen3-VL 权重、ShanghaiTech 视频/跟踪数据以及 `qwen_vl_utils`/LAVIDA 相关环境。
+
+主要可视化：
+
+![中文实验总览](figures/id50_720p_token_compression/id50_chinese_summary.jpg)
+
+![Token compression mechanism](figures/id50_720p_token_compression/id50_token_compression_mechanism.jpg)
+
+![Positive case](figures/id50_720p_token_compression/id50_running_focus_sheet.jpg)
+
+![Negative control](figures/id50_720p_token_compression/id50_walking_negative_control_sheet.jpg)

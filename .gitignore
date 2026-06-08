@@ -1,70 +1,11 @@
-# Large local datasets and model weights
-data/
-models/
-*.pt
-*.pth
-*.safetensors
-*.bin
-*.onnx
-
-# Experiment outputs
-experiments/
-outputs/
-runs/
-wandb/
-packages/
-*.log
-
-# Prepared local dataset payloads and generated labels/tracks
-datasets/*/frames/
-datasets/*/frames
-datasets/*/videos/
-datasets/*/videos
-datasets/*/masks/
-datasets/*/masks
-datasets/*/detections/
-datasets/*/detections
-datasets/*/yolo26x_detections/
-datasets/*/yolo26x_detections
-datasets/*/tracks*/
-datasets/*/work*/
-datasets/*/*work*/
-datasets/*/tracking_reference/
-datasets/*/tracking_reference
-datasets/*/frames_GT/*.npy
-datasets/*/frames_GT/segments.json
-datasets/*/frames_GT/*.mp4
-datasets/*/frames_GT.bak/*.npy
-datasets/*/frames_GT.bak/segments.json
-datasets/*/frames_GT.bak/*.mp4
+# Local datasets and baselines are intentionally not part of this compact report repo.
+datasets/
 baseline/
 
-# Local payload links under extensible dataset collections
-datasets/sha_ave_nwp/*/frames
-datasets/sha_ave_nwp/*/videos
-datasets/sha_ave_nwp/*/masks
-datasets/sha_ave_nwp/*/detections
-datasets/sha_ave_nwp/*/yolo26x_detections
-datasets/sha_ave_nwp/*/yolo26x_work
-datasets/sha_ave_nwp/*/object_detection/yolo26x/detections/
-datasets/sha_ave_nwp/*/object_detection/yolo26x/work/
-datasets/sha_ave_nwp/*/work*
-datasets/sha_ave_nwp/*/tracking_reference
-datasets/sha_ave_nwp/*/frames_GT.bak
-datasets/sha_ave_nwp/*/tracking/*/frames/
-datasets/sha_ave_nwp/*/tracking/*/tracks/
-datasets/sha_ave_nwp/*/tracking/*/visualizations/
-datasets/sha_ave_nwp/*/tracking/*/run_summary.json
-
-# Python
+# Python/runtime caches.
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
 
-# OS / editor
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+# Large local outputs.
+*.log
+*.tmp
