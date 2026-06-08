@@ -12,8 +12,10 @@
 
 - 完整视频 720p baseline：`walking, high`
 - 完整视频 720p，仅空间 ROI 压缩：`walking, high`
-- 完整视频 720p，运动时段聚焦 token 压缩：`running`，模型自报告 confidence 为 `0.98`
-- 负对照：同样压缩但聚焦后段慢速窗口：`walking`，模型自报告 confidence 为 `0.98`
+- 完整视频 720p，运动时段聚焦 token 压缩：`running`
+- 负对照：同样压缩但聚焦后段慢速窗口：`walking`
+
+大模型判断 `running` 的依据不是自报告置信度，而是压缩后保留下来的 ID50 关键运动证据：frames `136-166` 中的快速步幅、明显摆臂、离地/近似离地姿态，以及与后段慢速窗口的差异。
 
 完整报告见：
 

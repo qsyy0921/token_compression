@@ -35,7 +35,7 @@ PROMPT = (
     "Focus on tracking ID 50 in the video. Classify the motion of tracking ID 50 as one of: "
     "running, jogging, fast walking, walking, or uncertain. Running/jogging means fast gait "
     "with rapid stride, strong arm swing, or airborne/near-airborne steps. Ignore other people "
-    "unless they help compare speed. Return exactly three lines: label, confidence, evidence."
+    "unless they help compare speed. Return the label and concise visual evidence."
 )
 
 

@@ -25,10 +25,10 @@ COLORS = {
 
 
 RESULTS = [
-    ("Baseline full 720p", "11960 -> 11960", "walking / high", (82, 82, 82)),
-    ("Spatial ROI-aware", "11960 -> 3178", "walking / high", (66, 135, 245)),
-    ("Motion-focus 136-166", "11960 -> 353", "running / self-report 0.98", (34, 178, 104)),
-    ("Negative focus 220-260", "11960 -> 497", "walking / self-report 0.98", (205, 139, 45)),
+    ("Baseline full 720p", "11960 -> 11960", "walking", (82, 82, 82)),
+    ("Spatial ROI-aware", "11960 -> 3178", "walking", (66, 135, 245)),
+    ("Motion-focus 136-166", "11960 -> 353", "running", (34, 178, 104)),
+    ("Negative focus 220-260", "11960 -> 497", "walking", (205, 139, 45)),
 ]
 
 
@@ -283,18 +283,18 @@ def make_chinese_summary(out_path):
 
     box(56, 150, 460, 230, "Baseline：完整视频直接推理", (100, 108, 118))
     draw.text((94, 220), "视觉 token：11960 -> 11960", fill=(58, 66, 76), font=FONT_18)
-    draw.text((94, 260), "输出：walking / high", fill=(46, 52, 60), font=FONT_22)
+    draw.text((94, 260), "输出：walking", fill=(46, 52, 60), font=FONT_22)
     draw.text((94, 310), "问题：其他人、背景、长时间正常片段稀释 ID50 的关键步态证据。", fill=(78, 86, 96), font=FONT_16)
 
     box(560, 150, 460, 230, "仅空间 ROI 压缩", COLORS["background"])
     draw.text((598, 220), "视觉 token：11960 -> 3178", fill=(58, 66, 76), font=FONT_18)
-    draw.text((598, 260), "输出：walking / high", fill=(46, 52, 60), font=FONT_22)
+    draw.text((598, 260), "输出：walking", fill=(46, 52, 60), font=FONT_22)
     draw.text((598, 310), "结论：只压其他人和背景还不够，时间维度的 walking 片段仍会稀释判断。", fill=(78, 86, 96), font=FONT_16)
 
     box(1064, 150, 460, 230, "运动聚焦 Token 压缩", COLORS["target"])
     draw.text((1102, 220), "视觉 token：11960 -> 353", fill=(58, 66, 76), font=FONT_18)
-    draw.text((1102, 260), "输出：running，自报告0.98", fill=(22, 116, 66), font=FONT_22)
-    draw.text((1102, 310), "保留 frames 136-166 的 ID50 关键运动 token，压缩非关键 token。", fill=(78, 86, 96), font=FONT_16)
+    draw.text((1102, 260), "输出：running", fill=(22, 116, 66), font=FONT_22)
+    draw.text((1102, 310), "依据：快速步幅、明显摆臂、离地/近似离地姿态。", fill=(78, 86, 96), font=FONT_16)
 
     draw.line((520, 265, 555, 265), fill=(120, 130, 142), width=4)
     draw.polygon([(555, 265), (540, 255), (540, 275)], fill=(120, 130, 142))
@@ -316,9 +316,9 @@ def make_chinese_summary(out_path):
 
     draw.text((760, 450), "关键对照", fill=(26, 32, 40), font=FONT_28)
     rows = [
-        ("完整视频 baseline", "walking / high", (100, 108, 118)),
-        ("运动聚焦 136-166", "running，自报告0.98", COLORS["target"]),
-        ("负对照 220-260", "walking，自报告0.98", (205, 139, 45)),
+        ("完整视频 baseline", "walking", (100, 108, 118)),
+        ("运动聚焦 136-166", "running", COLORS["target"]),
+        ("负对照 220-260", "walking", (205, 139, 45)),
     ]
     y = 512
     for label, result, color in rows:
@@ -330,7 +330,7 @@ def make_chinese_summary(out_path):
 
     draw.rounded_rectangle((56, 800, 1524, 910), radius=18, fill=(232, 247, 238), outline=COLORS["target"], width=2)
     draw.text((86, 828), "结论", fill=(22, 116, 66), font=FONT_22)
-    draw.text((86, 868), "该案例证明：在多对象长视频中，目标感知 + 运动感知的 token 压缩可以放大 ID50 的 running 证据，使同一模型从 walking 翻转为 running。", fill=(30, 72, 50), font=FONT_18)
+    draw.text((86, 868), "该案例证明：压缩后模型根据快速步幅、明显摆臂和离地/近似离地证据，将同一完整视频从 walking 判断翻转为 running。", fill=(30, 72, 50), font=FONT_18)
     img.save(out_path, quality=94)
 
 
@@ -448,7 +448,7 @@ def make_token_compression_mechanism(out_path):
     draw.rounded_rectangle((1160, 598, 1490, 660), radius=14, fill=(238, 241, 246), outline=(205, 212, 222))
     draw.text((1188, 616), "baseline: walking / high", fill=(42, 48, 56), font=FONT_22)
     draw.rounded_rectangle((1160, 690, 1490, 752), radius=14, fill=(223, 250, 233), outline=COLORS["target"])
-    draw.text((1188, 708), "compressed: running / self-report 0.98", fill=(24, 104, 60), font=FONT_22)
+    draw.text((1188, 708), "compressed: running", fill=(24, 104, 60), font=FONT_22)
 
     # Legend
     legend_y = 858
