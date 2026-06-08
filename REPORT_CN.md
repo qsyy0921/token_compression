@@ -13,9 +13,14 @@
 | 完整视频 baseline | `11960 -> 11960` | `walking` | 不压缩时，多对象和长时间上下文稀释 ID50 的 running 证据。 |
 | 仅空间 ROI 压缩 | `11960 -> 3178` | `walking` | 只压其他人和背景还不够，后续 walking 时间片仍会影响判断。 |
 | 运动聚焦 token 压缩 | `11960 -> 353` | `running` | 保留 frames `136-166` 的 ID50 关键运动 token，压缩非关键 token。 |
-| 慢速窗口负对照 | `11960 -> 497` | `walking` | 聚焦 frames `220-260` 时仍为 walking，说明 running 不是压缩伪影。 |
+| 慢速对照窗口 | `11960 -> 497` | `walking` | 聚焦 frames `220-260` 时仍为 walking，说明 running 不是压缩伪影。 |
 
-**可以证明的 case-level 结论：** 在该视频案例中，同一 Qwen3-VL、同一完整视频、同一 720p 输入下，baseline 输出 `walking`；经过目标感知 + 运动感知 token 压缩后输出 `running`；慢速窗口负对照仍输出 `walking`。
+**这里的“running 证据窗口”和“慢速对照窗口”是什么意思：**
+
+- **running 证据窗口**指 frames `136-166`。这是同一视频、同一 tracking ID `50` 中最像 running/jogging 的片段，用来验证 token 压缩后模型能否看见步幅、摆臂和近似离地等 running 证据。
+- **慢速对照窗口**指 frames `220-260`。它仍然来自同一视频、同一 ID50，并使用同样的 token 压缩策略；区别只是这段运动更平稳、更像 walking。它的作用是排除“只要压缩就会让模型说 running”的可能性。
+
+**可以证明的 case-level 结论：** 在该视频案例中，同一 Qwen3-VL、同一完整视频、同一 720p 输入下，baseline 输出 `walking`；经过目标感知 + 运动感知 token 压缩后输出 `running`；慢速对照窗口仍输出 `walking`。
 
 **不能过度声称：** 这不是大规模 benchmark，不能直接证明所有视频有效，也不能证明已经超过 VAD SOTA。
 
@@ -53,9 +58,9 @@ visual tokens: 13 * 23 * 40 = 11960
 2. **快速位移**：ID50 在 frames `136-166` 中相对自身人体尺度发生明显位移。
 3. **明显摆臂**：上肢摆动幅度更大，和快速步态同步。
 4. **离地或近似离地**：部分帧出现跑步/小跑常见的脚步支撑不稳定或近似离地姿态。
-5. **与慢速窗口对比**：frames `220-260` 中 ID50 更平稳、步幅更小、缺少明显摆臂和离地证据，因此作为 walking 负对照。
+5. **与慢速窗口对比**：frames `220-260` 中 ID50 更平稳、步幅更小、缺少明显摆臂和离地证据，因此作为慢速对照窗口。
 
-**判断依据不是 confidence 数字。** 本报告不把模型自报告 confidence 当作实验指标；核心依据是关键帧段中的步态证据，以及与慢速负对照段的差异。
+**判断依据不是 confidence 数字。** 本报告不把模型自报告 confidence 当作实验指标；核心依据是关键帧段中的步态证据，以及与慢速对照窗口的差异。
 
 ## 5. “目标感知 + 运动感知”如何做
 
@@ -86,12 +91,12 @@ ID50 token       -> 保留
 2. 删除该窗口中的其他行人 token。
 3. 背景 token 做 2x2 average merge。
 4. 非关键时间块压缩为少量 summary token，减少 walking 片段稀释。
-5. 使用 frames `220-260` 作为慢速负对照窗口。
+5. 使用 frames `220-260` 作为慢速对照窗口。
 
 ```text
 关键运动时间窗 136-166  -> 保留 ID50 细节
 非关键时间块            -> 强压缩为 summary token
-慢速对照窗口 220-260     -> 验证不是压缩伪影
+慢速对照窗口 220-260     -> 验证 running 不是压缩伪影
 ```
 
 ### 5.3 合并后的实际策略
@@ -160,7 +165,7 @@ new_feature_j = mean(original_features[group_j])
 3. 重新对齐或重建 `position_ids`，保证 LLM 接收到的是长度更短但位置一致的视觉序列；
 4. 文本 prompt 不变，变化的是送入 LLM 的视觉 token 序列。
 
-最终该正例设置中，视觉 token 从 `11960` 压到 `353`，输入 token 从 `12156` 压到 `549`。这会显著提高 ID50 关键运动 token 在视觉序列中的比例，使模型更容易基于步幅、摆臂和近似离地姿态判断 `running`。
+最终在 running 证据窗口设置中，视觉 token 从 `11960` 压到 `353`，输入 token 从 `12156` 压到 `549`。这会显著提高 ID50 关键运动 token 在视觉序列中的比例，使模型更容易基于步幅、摆臂和近似离地姿态判断 `running`。
 
 ## 7. 实验结果
 
@@ -169,37 +174,37 @@ new_feature_j = mean(original_features[group_j])
 | 完整视频 baseline，不压缩 | `11960 -> 11960` | `12156 -> 12156` | `walking` | 模型没有稳定捕捉快速步幅、强摆臂和离地证据。 |
 | 仅空间 ROI-aware 压缩 | `11960 -> 3178` | `12156 -> 3374` | `walking` | 目标空间区域保留，但完整时间轴中的 walking 片段仍稀释判断。 |
 | 运动聚焦压缩，frames `136-166` | `11960 -> 353` | `12156 -> 549` | `running` | 关键窗口中可见快速步幅、明显摆臂和离地/近似离地姿态。 |
-| 负对照，frames `220-260` | `11960 -> 497` | `12156 -> 693` | `walking` | 后段步态平稳，缺少 running 所需的快速步幅和离地证据。 |
+| 慢速对照窗口，frames `220-260` | `11960 -> 497` | `12156 -> 693` | `walking` | 后段步态平稳，缺少 running 所需的快速步幅和离地证据。 |
 
-## 8. 正例可视化：frames 136-166
+## 8. Running 证据窗口可视化：frames 136-166
 
 下图左侧是原始 tracking 可视化，右侧是在同一帧上叠加的 token 策略背景。右侧每个彩色小格对应一个 40x23 LLM 视觉 token cell：绿色表示 ID50 token 保留；红色表示其他行人 token 删除；蓝色表示背景 token 进入 2x2 average merge；黄色框表示 ID50 扩张 ROI。该窗口中 ID50 呈现更强步幅、更明显摆臂和近似离地姿态。
 
-![正例可视化：保留 frames 136-166 的 ID50 关键运动 token。](assets/id50_running_focus_sheet.jpg)
+![Running 证据窗口可视化：保留 frames 136-166 的 ID50 关键运动 token。](assets/id50_running_focus_sheet.jpg)
 
-*正例可视化：保留 frames 136-166 的 ID50 关键运动 token。*
+*Running 证据窗口可视化：保留 frames 136-166 的 ID50 关键运动 token。*
 
 <video controls preload="metadata" src="assets/id50_running_focus_overlay.mp4"></video>
 
-*正例 overlay 视频：frames 136-166，运动聚焦 token 压缩后模型输出 running。*
+*Running 证据窗口 overlay 视频：frames 136-166，运动聚焦 token 压缩后模型输出 running。*
 
-## 9. 负对照可视化：frames 220-260
+## 9. 慢速对照窗口可视化：frames 220-260
 
-负对照图使用同样的 token 策略背景画法：绿色仍然保留 ID50 token，红色仍然删除其他行人 token，蓝色仍然对背景 token 做 2x2 average merge。区别只在于聚焦窗口换成 frames `220-260` 的慢速片段。模型仍输出 `walking`，说明 `running` 不是强压缩本身诱导出来的，而是 frames `136-166` 关键运动窗口中的视觉证据导致的。
+慢速对照窗口使用同样的 token 策略背景画法：绿色仍然保留 ID50 token，红色仍然删除其他行人 token，蓝色仍然对背景 token 做 2x2 average merge。区别只在于聚焦窗口换成 frames `220-260` 的慢速片段。模型仍输出 `walking`，说明 `running` 不是强压缩本身诱导出来的，而是 frames `136-166` 关键运动窗口中的视觉证据导致的。
 
-![负对照可视化：frames 220-260，步态更平稳，输出 walking。](assets/id50_walking_negative_control_sheet.jpg)
+![慢速对照窗口可视化：frames 220-260，步态更平稳，输出 walking。](assets/id50_walking_negative_control_sheet.jpg)
 
-*负对照可视化：frames 220-260，步态更平稳，输出 walking。*
+*慢速对照窗口可视化：frames 220-260，步态更平稳，输出 walking。*
 
 <video controls preload="metadata" src="assets/id50_walking_negative_control_overlay.mp4"></video>
 
-*负对照 overlay 视频：frames 220-260，同样机制下仍输出 walking。*
+*慢速对照窗口 overlay 视频：frames 220-260，同样机制下仍输出 walking。*
 
 ## 10. 时间线可视化
 
-![时间线图：绿色为 running 正例窗口 136-166，黄色为 walking 负对照窗口 220-260。](assets/id50_720p_experiment_timeline.jpg)
+![时间线图：绿色为 running 证据窗口 136-166，黄色为 walking 慢速对照窗口 220-260。](assets/id50_720p_experiment_timeline.jpg)
 
-*时间线图：绿色为 running 正例窗口 136-166，黄色为 walking 负对照窗口 220-260。*
+*时间线图：绿色为 running 证据窗口 136-166，黄色为 walking 慢速对照窗口 220-260。*
 
 ## 11. 复现说明
 
@@ -214,4 +219,4 @@ new_feature_j = mean(original_features[group_j])
 
 ## 12. 最终表述建议
 
-> 在该多对象长视频案例中，Qwen3-VL baseline 在完整 720p 输入上输出 walking。通过目标感知和运动感知 token 压缩，保留 ID50 在 frames 136-166 的关键运动 token，并压缩其他行人、背景和非关键时间块后，同一模型输出 running。负对照窗口 frames 220-260 仍输出 walking，说明 running 判断来自关键步态证据，而不是压缩伪影。
+> 在该多对象长视频案例中，Qwen3-VL baseline 在完整 720p 输入上输出 walking。通过目标感知和运动感知 token 压缩，保留 ID50 在 frames 136-166 的关键运动 token，并压缩其他行人、背景和非关键时间块后，同一模型输出 running。慢速对照窗口 frames 220-260 仍输出 walking，说明 running 判断来自关键步态证据，而不是压缩伪影。
