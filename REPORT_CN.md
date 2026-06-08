@@ -109,6 +109,59 @@ ID50 + frames 136-166  -> 保留 token
 
 *Token 压缩机制图：目标 token 保留、其他人 token 删除、背景 2x2 merge、非关键时间块压缩。*
 
+### 6.1 颜色背景对应的 token 处理策略
+
+下图把可视化中的颜色背景和模型数据流连接起来。颜色不是为了美观标注，而是对应不同 token 在压缩过程中的实际处理方式。
+
+![Token 数据流与颜色策略：不同颜色对应保留、删除、平均池化和时间压缩。](assets/token_dataflow_policy.jpg)
+
+*Token 数据流与颜色策略：完整视频先进入 Qwen3-VL 视觉编码器，再根据 policy mask 对视觉 token 做保留、删除、merge 或时间压缩。*
+
+| 可视化颜色 | 对应 token | 处理策略 | 在模型数据流中的含义 |
+| --- | --- | --- | --- |
+| 绿色 | ID50 在关键运动窗口 frames `136-166` 内的目标 token | 保留 | 这些 token 对应腿部、脚部、身体边缘和摆臂细节，直接进入压缩后的 `visual_features`。 |
+| 红色 | 其他行人的 token | 删除 / prune | 对应 hidden vector 不再复制到新的 `visual_features`，同时减少 `input_ids` 中匹配的 `<video_pad>` 占位符。 |
+| 蓝色 | 背景 token | 2x2 average merge | 相邻四个背景 token 的 hidden vectors 求平均，只保留一个代表 token，降低背景占比。 |
+| 灰色 | 非关键时间块 token | 时间压缩 / summary | frames `136-166` 之外的时间段整体压成少量 summary token，保留视频上下文但减少 walking 片段稀释。 |
+| 黄色 | ID50 扩张 ROI / 时间窗口 | 提示保护区域 | 黄色不是一种新的 token 类型，而是表示目标保护范围：该范围内更倾向于保留绿色目标 token。 |
+
+### 6.2 从模型数据流看“删 token”如何实现压缩
+
+这里的 token 压缩不是裁剪视频像素，也不是把原始视频重新编码成更小分辨率，而是在 Qwen3-VL 视觉编码器已经产生视觉 token 之后，对视觉特征序列做选择和重组。
+
+原始流程可以简化为：
+
+```text
+视频帧 -> Qwen3-VL 视觉编码器 -> visual_features[11960] + input_ids 中的 <video_pad> 占位符 -> LLM 解码
+```
+
+压缩后的流程是：
+
+```text
+视频帧 -> Qwen3-VL 视觉编码器 -> visual_features[11960]
+       -> 根据 tracking ID、bbox、关键时间窗构造 policy mask
+       -> 生成压缩后的 visual_features[353]
+       -> 同步重建 <video_pad> 占位符和 position_ids
+       -> LLM 解码
+```
+
+对于每一组被保留或合并的 token，新的视觉特征按下面方式构造：
+
+```text
+new_feature_j = mean(original_features[group_j])
+```
+
+如果 `group_j` 只有一个 ID50 目标 token，那么 `mean` 后仍等于原来的目标 token，相当于“保留”。如果 `group_j` 是 2x2 背景 token，则四个背景 hidden vectors 平均成一个 token，相当于“merge”。如果某个其他行人 token 不属于任何 `group_j`，它就不会出现在新的 `visual_features` 中，这就是“删除 / prune”。
+
+因此，“删除 token”在数据流里的具体含义是：
+
+1. 不把该 token 的 hidden vector 写入压缩后的 `visual_features`；
+2. 同步减少 `input_ids` 中与视觉 token 对齐的 `<video_pad>` 占位符；
+3. 重新对齐或重建 `position_ids`，保证 LLM 接收到的是长度更短但位置一致的视觉序列；
+4. 文本 prompt 不变，变化的是送入 LLM 的视觉 token 序列。
+
+最终该正例设置中，视觉 token 从 `11960` 压到 `353`，输入 token 从 `12156` 压到 `549`。这会显著提高 ID50 关键运动 token 在视觉序列中的比例，使模型更容易基于步幅、摆臂和近似离地姿态判断 `running`。
+
 ## 7. 实验结果
 
 | 实验设置 | 视觉 token | 输入 token | 模型输出 | 判断依据 |
