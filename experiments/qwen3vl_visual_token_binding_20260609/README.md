@@ -51,6 +51,132 @@
 
 该规则不使用 tracking，因此同一帧中的多个对象只由 detection bbox 提供空间监督。
 
+## Token 如何聚类成对象
+
+这里的“聚类成对象”不是纯无监督聚类，而是 **detection-supervised token-to-object binding**。也就是说，我们先用检测框把 Qwen3-VL visual token 训练成 object-aware token，再用这些 token 的预测结果组合出 object 区域。
+
+整体分为两层：
+
+```text
+第一层：visual token -> foreground / background / class / center vote
+第二层：foreground visual tokens -> object cluster
+```
+
+### 1. 从图像到 Qwen visual token
+
+每帧图像先进入 Qwen3-VL vision tower，取 `pooler_output` 作为视觉 token 特征：
+
+```text
+frame -> Qwen3-VL vision tower -> merged visual tokens
+```
+
+当前实验中，输入帧 resize 到 `640x360` 后，Qwen processor 会对齐到约 `640x352`。因此每帧的 merged visual token 网格为：
+
+```text
+20 x 11 = 220 tokens/frame
+token feature dim = 4096
+token cell size ~= 32 x 32 pixels
+```
+
+这些 token 是真实送入 Qwen3-VL LLM 之前的视觉 token，而不是手工 RGB 特征。
+
+### 2. 用 detection bbox 生成 token 级监督
+
+每个 detection bbox 会被缩放到 Qwen processor 实际处理后的图像坐标中。然后对每个 `32x32` token cell 计算它与所有 bbox 的 cell-area overlap：
+
+```text
+overlap(token_i, bbox_j) = area(token_i ∩ bbox_j) / area(token_i)
+```
+
+如果某个 token 与某个 bbox 的 overlap 超过阈值 `0.10`，就把该 token 绑定到 overlap 最大的 bbox：
+
+```text
+objectness_i = 1
+class_i = bbox_j.label
+center_offset_i = bbox_center_j - token_center_i
+```
+
+如果没有任何 bbox 达到阈值：
+
+```text
+objectness_i = 0
+class_i = background
+center_offset_i = 0
+```
+
+这个步骤提供的是 token 级伪标签。它不使用 tracking，也不需要 track_id。
+
+### 3. 训练 object-aware token head
+
+Qwen3-VL vision tower 冻结，只训练一个轻量 MLP head：
+
+```text
+input:  qwen_visual_token_i ∈ R^4096
+output: objectness_i, class_i, center_offset_i
+```
+
+训练 loss 为：
+
+```text
+loss = BCE(objectness)
+     + CE(class)
+     + SmoothL1(center_offset)
+```
+
+训练完成后，head 可以对每个 visual token 输出：
+
+```text
+该 token 是否属于目标
+该 token 属于哪类目标
+该 token 应该投票到哪个目标中心
+```
+
+### 4. 从 token binding 到 object cluster
+
+推理时，可以用以下规则把 token 合成 object cluster：
+
+1. 过滤掉 `objectness` 低于阈值的 token。
+2. 将剩余 token 按预测类别分组，例如 `person`、`car`、`bicycle`。
+3. 对同类别 token 计算预测中心：
+
+```text
+pred_center_i = token_center_i + center_offset_i
+```
+
+4. 将空间相邻、类别相同、`pred_center` 接近的 token 归为同一个 cluster。
+5. 每个 cluster 的外接矩形或 token mask 就是一个 object 区域。
+
+可以写成：
+
+```text
+object_cluster_k = {
+    token_i |
+    objectness_i > threshold,
+    class_i = c,
+    pred_center_i close to center_k,
+    token_i spatially connected to cluster_k
+}
+```
+
+这样得到的 cluster 不是来自 tracking，而是来自当前帧内 Qwen visual token 的语义特征、空间连续性和中心投票。
+
+### 5. 和后续 token 压缩的关系
+
+对 token 压缩任务来说，这一步的目标不是追求极高 precision，而是优先保证 object token recall。原因是：
+
+- 漏掉异常对象 token 会让后续 VLM 永远看不到关键证据；
+- 多保留一些背景或邻近 token 只会降低压缩率，后续还可以用 anomaly score、motion score 和 temporal compression 继续筛选。
+
+因此当前 object-to-token binding 更适合作为 anomaly-aware token compression 的第一步：
+
+```text
+Qwen visual tokens
+-> object-aware token binding
+-> object-level anomaly scoring
+-> spatial / temporal token compression
+-> VLM reasoning
+```
+
 ## 训练规模
 
 - 总帧数：240

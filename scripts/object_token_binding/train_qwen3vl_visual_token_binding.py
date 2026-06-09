@@ -106,7 +106,7 @@ def iter_jsonl(path: Path):
 def resolve_frame_path(root: Path, item: dict) -> Path:
     dataset, video_id, frame_idx = item["dataset"], str(item["video_id"]), int(item["frame_idx"])
     frame_dir = root / dataset / "frames" / video_id
-    for name in (f"{frame_idx:03d}.jpg", f"{frame_idx:04d}.jpg", f"{frame_idx}.jpg"):
+    for name in (f"{frame_idx:02d}.jpg", f"{frame_idx:03d}.jpg", f"{frame_idx:04d}.jpg", f"{frame_idx}.jpg"):
         path = frame_dir / name
         if path.exists():
             return path
@@ -156,6 +156,83 @@ def load_records(args) -> list[FrameRecord]:
         records.extend(items[: args.max_frames_per_dataset])
     rng.shuffle(records)
     return records
+
+
+def scene_id(video_id: str) -> str:
+    return video_id.split("_", 1)[0] if "_" in video_id else video_id
+
+
+def load_scene_split_records(args) -> tuple[list[FrameRecord], list[FrameRecord], dict]:
+    rng = random.Random(args.seed)
+    datasets = [x.strip() for x in args.datasets.split(",") if x.strip()]
+    by_dataset_scene: dict[str, dict[str, list[FrameRecord]]] = defaultdict(lambda: defaultdict(list))
+
+    for path in detection_files(args.root, datasets):
+        per_video = 0
+        for item in iter_jsonl(path):
+            frame_idx = int(item["frame_idx"])
+            if args.frame_stride > 1 and frame_idx % args.frame_stride != 0:
+                continue
+            boxes = [dict(b) for b in item.get("boxes", []) if float(b.get("confidence", 0.0)) >= args.min_conf]
+            if not boxes:
+                continue
+            dataset = item["dataset"]
+            video_id = str(item["video_id"])
+            sid = scene_id(video_id)
+            by_dataset_scene[dataset][sid].append(
+                FrameRecord(
+                    dataset=dataset,
+                    video_id=video_id,
+                    frame_idx=frame_idx,
+                    image_path=resolve_frame_path(args.root, item),
+                    width=int(item["width"]),
+                    height=int(item["height"]),
+                    boxes=boxes,
+                )
+            )
+            per_video += 1
+            if per_video >= args.max_frames_per_video:
+                break
+
+    train_records: list[FrameRecord] = []
+    val_records: list[FrameRecord] = []
+    split_info = {"datasets": {}}
+    for dataset in datasets:
+        scene_map = {sid: items for sid, items in by_dataset_scene.get(dataset, {}).items() if items}
+        scenes = sorted(scene_map)
+        if not scenes:
+            continue
+        shuffled = scenes[:]
+        rng.shuffle(shuffled)
+        val_n = max(1, int(round(len(shuffled) * args.val_scene_ratio))) if len(shuffled) > 1 else 1
+        val_scenes = set(shuffled[:val_n])
+        train_scenes = [sid for sid in scenes if sid not in val_scenes]
+        if not train_scenes:
+            train_scenes = [sid for sid in scenes if sid in val_scenes]
+
+        train_items = []
+        val_items = []
+        for sid in train_scenes:
+            train_items.extend(scene_map[sid])
+        for sid in val_scenes:
+            val_items.extend(scene_map[sid])
+        rng.shuffle(train_items)
+        rng.shuffle(val_items)
+        train_cap = max(1, int(args.max_frames_per_dataset * (1.0 - args.val_ratio)))
+        val_cap = max(1, int(args.max_frames_per_dataset * args.val_ratio))
+        train_records.extend(train_items[:train_cap])
+        val_records.extend(val_items[:val_cap])
+        split_info["datasets"][dataset] = {
+            "num_scenes": len(scenes),
+            "train_scenes": sorted(train_scenes),
+            "val_scenes": sorted(val_scenes),
+            "train_frames": min(len(train_items), train_cap),
+            "val_frames": min(len(val_items), val_cap),
+        }
+
+    rng.shuffle(train_records)
+    rng.shuffle(val_records)
+    return train_records, val_records, split_info
 
 
 def build_class_map(records: list[FrameRecord], min_class_count: int) -> dict[str, int]:
@@ -508,6 +585,7 @@ def parse_args():
     p.add_argument("--datasets", default="avenue_test,shanghaitech_test,nwpu_test")
     p.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
     p.add_argument("--max-frames-per-dataset", type=int, default=40)
+    p.add_argument("--max-frames-per-video", type=int, default=8)
     p.add_argument("--frame-stride", type=int, default=24)
     p.add_argument("--min-conf", type=float, default=0.25)
     p.add_argument("--min-class-count", type=int, default=5)
@@ -518,6 +596,8 @@ def parse_args():
     p.add_argument("--neg-ratio", type=int, default=4)
     p.add_argument("--min-neg-tokens", type=int, default=64)
     p.add_argument("--val-ratio", type=float, default=0.2)
+    p.add_argument("--split-mode", choices=["random", "scene"], default="random")
+    p.add_argument("--val-scene-ratio", type=float, default=0.25)
     p.add_argument("--epochs", type=int, default=10)
     p.add_argument("--batch-size", type=int, default=4096)
     p.add_argument("--lr", type=float, default=1e-3)
@@ -535,13 +615,19 @@ def main():
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    records = load_records(args)
-    if not records:
+    if args.split_mode == "scene":
+        train_records, val_records, split_info = load_scene_split_records(args)
+        records = train_records + val_records
+    else:
+        records = load_records(args)
+        train_records, val_records = split_records(records, args.val_ratio, args.seed)
+        split_info = {"mode": "random_frame_split"}
+    if not records or not train_records or not val_records:
         raise RuntimeError("no detection records found")
     class_map = build_class_map(records, args.min_class_count)
-    train_records, val_records = split_records(records, args.val_ratio, args.seed)
     print(f"records train={len(train_records)} val={len(val_records)}", flush=True)
     print(f"class_map={class_map}", flush=True)
+    print(f"split_info={json.dumps(split_info, ensure_ascii=False)}", flush=True)
 
     device = torch.device(args.device)
     dtype = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp32": torch.float32}[args.vision_dtype]
@@ -601,6 +687,7 @@ def main():
                 "val_stats": val_stats,
                 "history": history,
                 "best_f1": best_f1,
+                "split_info": split_info,
                 "note": "Features are Qwen3-VL vision pooler_output tokens, supervised only by detection boxes.",
             },
             f,

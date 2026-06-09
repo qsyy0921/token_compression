@@ -56,6 +56,16 @@
 
 这个结果说明：Qwen3-VL 的真实 visual token 已经包含较强的 object-aware 信息，用 detection bbox 监督训练 token-to-object binding 是可行的。相比只使用 RGB + 坐标的手工特征版本，验证 F1 从约 `0.581` 提升到 `0.928`。
 
+这里的“token 聚类成对象”不是纯无监督聚类，而是两阶段的监督式绑定：
+
+```text
+Qwen visual token
+-> 预测 objectness / class / center_offset
+-> 按类别、空间连通性和中心投票合成 object cluster
+```
+
+具体来说，每个 `32x32` visual token cell 会和 detection bbox 计算重叠；超过阈值的 token 被监督为 object token，并学习指向对应 bbox center。推理时，高 objectness、同类别、空间相邻且 center vote 接近的 token 会被归为同一个 object cluster。这个过程只需要 detection bbox，不需要 tracking ID。
+
 ## 2. 中文总览可视化
 
 ![中文实验总览：baseline、空间 ROI 压缩、运动聚焦 token 压缩三组对照。](assets/id50_chinese_summary.jpg)
