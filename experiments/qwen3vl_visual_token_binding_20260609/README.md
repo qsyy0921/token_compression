@@ -100,12 +100,17 @@
 
 - [metrics.json](./metrics.json)
 - [history.csv](./history.csv)
+- [best_qwen3vl_visual_token_head.pt](./best_qwen3vl_visual_token_head.pt)
 
 ## 可视化
 
 总览图：
 
 ![Qwen3-VL visual token binding overview](./assets/overview_qwen3vl_visual_token_binding_large.jpg)
+
+训练曲线：
+
+![Qwen3-VL visual token binding training curves](./assets/training_curves_large.jpg)
 
 每一行包含三列：
 
@@ -150,7 +155,5 @@ CUDA_VISIBLE_DEVICES=1 /home/lcwt/miniconda3/envs/tokenpruner/bin/python -u \
 本地 checkpoint 保存在：
 
 ```text
-token_compression/outputs/qwen3vl_visual_token_binding_360p_p32_large/best_qwen3vl_visual_token_head.pt
+experiments/qwen3vl_visual_token_binding_20260609/best_qwen3vl_visual_token_head.pt
 ```
-
-checkpoint 没有放入 GitHub，以避免仓库体积膨胀。

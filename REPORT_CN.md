@@ -24,6 +24,38 @@
 
 **不能过度声称：** 这不是大规模 benchmark，不能直接证明所有视频有效，也不能证明已经超过 VAD SOTA。
 
+## 新增实验：Qwen3-VL 真实视觉 Token 的目标聚合训练
+
+在后续实验中，我们进一步验证了一个更基础的问题：不使用 tracking，只使用目标检测 bbox 作为监督，能否训练一个轻量 head，把 Qwen3-VL 的真实 visual tokens 聚合到 object 区域。
+
+该实验使用 Qwen3-VL vision tower 的 `pooler_output` 作为输入特征，也就是实际送入语言模型前的 merged visual tokens。训练时冻结 Qwen3-VL 视觉塔，只训练一个 MLP token head，预测：
+
+- `objectness`：该 visual token 是否属于目标；
+- `class`：该 token 所属目标类别；
+- `center_offset`：该 token 中心到 detection bbox 中心的偏移。
+
+训练监督只来自 `avenue_test`、`shanghaitech_test`、`nwpu_test` 三个数据集中的 YOLO detection jsonl，不使用 tracking ID。
+
+| 项目 | 数值 |
+| --- | ---: |
+| 总帧数 | 240 |
+| 训练帧 | 192 |
+| 验证帧 | 48 |
+| merged visual token 网格 | `20 x 11 = 220` tokens/frame |
+| visual token 维度 | 4096 |
+| best val F1 | 0.9282 |
+| val precision | 0.9379 |
+| val recall | 0.9187 |
+| foreground class accuracy | 0.8319 |
+
+![Qwen3-VL visual token binding overview](experiments/qwen3vl_visual_token_binding_20260609/assets/overview_qwen3vl_visual_token_binding_large.jpg)
+
+![Qwen3-VL visual token binding training curves](experiments/qwen3vl_visual_token_binding_20260609/assets/training_curves_large.jpg)
+
+完整结果见：[Qwen3-VL 真实视觉 Token 的目标聚合训练实验](experiments/qwen3vl_visual_token_binding_20260609/README.md)。
+
+这个结果说明：Qwen3-VL 的真实 visual token 已经包含较强的 object-aware 信息，用 detection bbox 监督训练 token-to-object binding 是可行的。相比只使用 RGB + 坐标的手工特征版本，验证 F1 从约 `0.581` 提升到 `0.928`。
+
 ## 2. 中文总览可视化
 
 ![中文实验总览：baseline、空间 ROI 压缩、运动聚焦 token 压缩三组对照。](assets/id50_chinese_summary.jpg)
@@ -208,14 +240,14 @@ new_feature_j = mean(original_features[group_j])
 
 ## 11. 复现说明
 
-本 GitHub 仓库只保留 Markdown 报告和 `assets/` 可视化资源，不再上传数据集、baseline 工程、模型权重或脚本。复现实验需要本地已有：
+本 GitHub 仓库保留 Markdown 报告、`assets/` 可视化资源、Qwen visual-token 聚合训练脚本和对应实验结果；不上传原始数据集、baseline 工程或 Qwen3-VL 模型权重。复现实验需要本地已有：
 
 - Qwen3-VL-8B-Instruct 权重；
 - ShanghaiTech `08_0044` 视频、帧图和 tracking jsonl；
 - `lavida` 环境；
 - `qwen_vl_utils` 或本地 LAVIDA 相关依赖。
 
-实验脚本和可视化脚本不再作为仓库文件保留；如需复跑，应从历史 commit 或本地工作区恢复。
+Qwen visual-token 聚合训练脚本位于 `scripts/object_token_binding/train_qwen3vl_visual_token_binding.py`。ID50 running 压缩实验脚本仍属于本地探索代码，未作为本报告的复现入口整理。
 
 ## 12. 最终表述建议
 
