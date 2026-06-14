@@ -532,6 +532,18 @@
 }
 ```
 
+## 三个对照方法
+
+这轮实验固定 object-to-token binding、Qwen3-VL visual encoder 和样本划分，只比较对象 token 进入 anomaly vector scorer 前后的特征组织方式。
+
+| 方法 | 输入特征 | 做法 | 目的 |
+|---|---|---|---|
+| anomaly_vector_visual_only | object-window 内所有 bbox visual tokens 的 pooled feature | 对一个 object 在短时间窗口内的所有绑定 token 做平均池化，得到固定维度对象向量，再和 8 个 anomaly vectors 计算相似度 | 验证仅靠对象视觉 token 是否能区分 normal/anomaly |
+| anomaly_vector_visual_motion | visual_only 对象向量 + bbox motion feature | 在视觉对象向量后拼接 bbox 运动统计特征，例如位置、尺度和跨帧变化，再输入 anomaly vector scorer | 验证显式运动信息是否能增强异常评分 |
+| anomaly_vector_token_topk | object-window 内保留 token set，不先整体平均 | 每个 token 分别和 anomaly vectors 计算相似度，再取异常证据最高的 top 20% token 聚合为 object anomaly score | 验证异常往往只出现在局部 token 上时，token-level evidence 是否比整体平均更敏感 |
+
+三者的输出都是 `object_anomaly_score`。当前版本没有训练 T01-T05 分类头，因此三者都只评估“是否异常”；T01-T05 只用于按真实标签分组观察分数。
+
 ## 指标摘要
 
 当前 short40 实验的指标是二分类对象异常评分指标：`normal` 记为负类，T01-T05 记为异常正类。`object_anomaly_score >= 0.5` 判为 anomaly，否则判为 normal。需要注意：本版 8 个 anomaly vector 是共享异常向量库，尚未显式绑定到 T01-T05 五个类别；因此下表反映的是“是否检测出异常”，不是五类异常分类准确率。
@@ -548,7 +560,13 @@
 
 下表展示 validation split 中每个真实标签的平均异常分数与被判为异常的比例。这里的 T01-T05 是真实标签分组统计，不代表 8 个 anomaly vector 已经和五个大类建立一一映射。
 
-| 方法 | normal mean / pred | T01 mean / pred | T02 mean / pred | T03 mean / pred | T04 mean / pred | T05 mean / pred |
+表头中的 `mean score / anomaly rate` 含义如下：
+
+- `normal mean score / anomaly rate = 0.0205 / 0.0000` 表示：真实标签为 normal 的验证 object-window 平均异常分数为 0.0205，其中 0% 被误判为 anomaly。
+- `T01 mean score / anomaly rate = 0.9994 / 1.0000` 表示：真实标签为 T01 的验证 object-window 平均异常分数为 0.9994，其中 100% 被判为 anomaly。
+- 这里的 `anomaly rate` 只表示 `object_anomaly_score >= 0.5` 的比例，不表示预测成对应类别的比例。
+
+| 方法 | normal mean score / anomaly rate | T01 mean score / anomaly rate | T02 mean score / anomaly rate | T03 mean score / anomaly rate | T04 mean score / anomaly rate | T05 mean score / anomaly rate |
 |---|---:|---:|---:|---:|---:|---:|
 | anomaly_vector_visual_only | 0.0558 / 0.0000 | 0.9992 / 1.0000 | 0.9992 / 1.0000 | 0.9990 / 1.0000 | 0.7996 / 0.8000 | 0.9975 / 1.0000 |
 | anomaly_vector_visual_motion | 0.4025 / 0.0625 | 0.6477 / 1.0000 | 0.6455 / 1.0000 | 0.6386 / 1.0000 | 0.5114 / 0.8000 | 0.5607 / 1.0000 |
