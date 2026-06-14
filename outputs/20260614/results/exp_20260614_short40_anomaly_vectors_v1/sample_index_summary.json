@@ -1,0 +1,71 @@
+{
+  "missing_packages": [],
+  "package_splits": {
+    "train": [
+      "Avenue_21",
+      "ShanghaiTech_06_0145",
+      "ShanghaiTech_01_0132",
+      "UCF-Crime_Assault_Assault039_x264",
+      "ShanghaiTech_05_0017",
+      "ShanghaiTech_01_0055",
+      "ShanghaiTech_01_0162",
+      "NWPU_D068_02",
+      "ShanghaiTech_01_0052",
+      "ShanghaiTech_09_0057",
+      "Avenue_18",
+      "ShanghaiTech_12_0173",
+      "ShanghaiTech_01_0130",
+      "ShanghaiTech_07_0048",
+      "ShanghaiTech_07_0008",
+      "ShanghaiTech_07_0009",
+      "ShanghaiTech_01_0133",
+      "ShanghaiTech_01_0016",
+      "ShanghaiTech_07_0006",
+      "Avenue_20",
+      "Avenue_08",
+      "ShanghaiTech_06_0153",
+      "ShanghaiTech_12_0148",
+      "NWPU_D094_01",
+      "ShanghaiTech_03_0031",
+      "ShanghaiTech_03_0041",
+      "ShanghaiTech_01_0014",
+      "NWPU_D047_06",
+      "ShanghaiTech_03_0033",
+      "ShanghaiTech_08_0079",
+      "ShanghaiTech_03_0035",
+      "ShanghaiTech_06_0144"
+    ],
+    "val": [
+      "ShanghaiTech_01_0027",
+      "ShanghaiTech_01_0163",
+      "ShanghaiTech_06_0147",
+      "ShanghaiTech_05_0024",
+      "ShanghaiTech_03_0039",
+      "ShanghaiTech_07_0007",
+      "ShanghaiTech_01_0139",
+      "NWPU_D043_02",
+      "UCF-Crime_Assault_Assault024_x264",
+      "Avenue_11"
+    ],
+    "openset": [
+      "NWPU_D003_05",
+      "NWPU_D038_02",
+      "NWPU_D013_01"
+    ]
+  },
+  "counts": {
+    "split_train": 143,
+    "label_T01": 12,
+    "type_object_track": 179,
+    "positive_True": 92,
+    "label_normal": 87,
+    "positive_False": 87,
+    "label_T02": 19,
+    "label_T03": 17,
+    "label_T04": 31,
+    "label_T05": 9,
+    "split_val": 32,
+    "split_openset": 4,
+    "label_R06": 4
+  }
+}
