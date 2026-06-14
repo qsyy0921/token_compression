@@ -532,6 +532,28 @@
 }
 ```
 
+## 指标摘要
+
+当前 short40 实验的指标是二分类对象异常评分指标：`normal` 记为负类，T01-T05 记为异常正类。`object_anomaly_score >= 0.5` 判为 anomaly，否则判为 normal。需要注意：本版 8 个 anomaly vector 是共享异常向量库，尚未显式绑定到 T01-T05 五个类别；因此下表反映的是“是否检测出异常”，不是五类异常分类准确率。
+
+| 方法 | Train Balanced Acc | Train 异常召回 | Train 正常误报 | Train AUROC | Val Balanced Acc | Val 异常召回 | Val 正常误报 | Val AUROC | Val Event Top1/Top3 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| anomaly_vector_visual_only | 0.9653 | 0.9306 | 0.0000 | 0.9980 | 0.9688 | 0.9375 | 0.0000 | 0.9727 | 1.0000 / 1.0000 |
+| anomaly_vector_visual_motion | 0.8669 | 0.9028 | 0.1690 | 0.9096 | 0.9375 | 0.9375 | 0.0625 | 0.9531 | 1.0000 / 1.0000 |
+| anomaly_vector_token_topk | 0.9859 | 1.0000 | 0.0282 | 0.9999 | 1.0000 | 1.0000 | 0.0000 | 1.0000 | 1.0000 / 1.0000 |
+
+其中 `Balanced Acc = 0.5 * (异常召回率 + 正常真负率)`，`正常误报` 表示 normal object-window 被判为 anomaly 的比例。结果显示：只用 visual feature 已经能检出大部分异常；加入 motion 后在本小样本验证集上误报上升；token-level top-k evidence 在该小范围测试中表现最好。
+
+## 验证集按类别分数
+
+下表展示 validation split 中每个真实标签的平均异常分数与被判为异常的比例。这里的 T01-T05 是真实标签分组统计，不代表 8 个 anomaly vector 已经和五个大类建立一一映射。
+
+| 方法 | normal mean / pred | T01 mean / pred | T02 mean / pred | T03 mean / pred | T04 mean / pred | T05 mean / pred |
+|---|---:|---:|---:|---:|---:|---:|
+| anomaly_vector_visual_only | 0.0558 / 0.0000 | 0.9992 / 1.0000 | 0.9992 / 1.0000 | 0.9990 / 1.0000 | 0.7996 / 0.8000 | 0.9975 / 1.0000 |
+| anomaly_vector_visual_motion | 0.4025 / 0.0625 | 0.6477 / 1.0000 | 0.6455 / 1.0000 | 0.6386 / 1.0000 | 0.5114 / 0.8000 | 0.5607 / 1.0000 |
+| anomaly_vector_token_topk | 0.0205 / 0.0000 | 0.9994 / 1.0000 | 0.9996 / 1.0000 | 0.9995 / 1.0000 | 0.9005 / 1.0000 | 0.9993 / 1.0000 |
+
 ## Metrics
 
 ```json
