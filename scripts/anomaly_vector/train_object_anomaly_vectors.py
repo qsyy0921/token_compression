@@ -217,11 +217,77 @@ class TokenAnomalyVectorScorer(AnomalyVectorScorer):
         return evidence, logits
 
 
+class PromptAlignmentScorer(nn.Module):
+    """AnomalyCLIP-style normal/anomaly prompt alignment for object embeddings."""
+
+    def __init__(self, in_dim: int, embed_dim: int, tau: float) -> None:
+        super().__init__()
+        self.tau = tau
+        self.proj = nn.Sequential(
+            nn.LayerNorm(in_dim),
+            nn.Linear(in_dim, 512),
+            nn.GELU(),
+            nn.Dropout(0.1),
+            nn.Linear(512, embed_dim),
+        )
+        self.normal_prompt = nn.Parameter(torch.randn(embed_dim) * 0.02)
+        self.anomaly_prompt = nn.Parameter(torch.randn(embed_dim) * 0.02)
+
+    def prompts(self) -> torch.Tensor:
+        return torch.stack([self.normal_prompt, self.anomaly_prompt], dim=0)
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        q = F.normalize(self.proj(x), dim=-1)
+        p = F.normalize(self.prompts(), dim=-1)
+        logits = q @ p.t() * self.tau
+        probs = F.softmax(logits, dim=1)
+        return probs[:, 1], logits
+
+
+class TokenPromptAlignmentScorer(PromptAlignmentScorer):
+    def __init__(
+        self,
+        in_dim: int,
+        embed_dim: int,
+        tau: float,
+        pooling: str,
+        topk_ratio: float,
+        lme_alpha: float,
+    ) -> None:
+        super().__init__(in_dim, embed_dim, tau)
+        self.pooling = pooling
+        self.topk_ratio = topk_ratio
+        self.lme_alpha = lme_alpha
+
+    def aggregate(self, scores: torch.Tensor) -> torch.Tensor:
+        if self.pooling == "mean":
+            return scores.mean()
+        if self.pooling == "topk":
+            k = max(1, int(math.ceil(scores.shape[0] * self.topk_ratio)))
+            return scores.topk(min(k, scores.shape[0])).values.mean()
+        if self.pooling == "logmeanexp":
+            alpha = float(self.lme_alpha)
+            return torch.logsumexp(alpha * scores, dim=0) / alpha - math.log(scores.shape[0]) / alpha
+        raise ValueError(self.pooling)
+
+    def forward_one(self, tokens: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        _, logits = super().forward(tokens.float())
+        token_scores = F.softmax(logits, dim=1)[:, 1]
+        score = self.aggregate(token_scores)
+        return score, logits
+
+
 def vector_separation_loss(vectors: torch.Tensor, margin: float) -> torch.Tensor:
     p = F.normalize(vectors, dim=-1)
     sim = p @ p.t()
     mask = ~torch.eye(sim.shape[0], dtype=torch.bool, device=sim.device)
     return torch.relu(sim[mask] - margin).pow(2).mean()
+
+
+def prompt_separation_loss(model: PromptAlignmentScorer, margin: float) -> torch.Tensor:
+    p = F.normalize(model.prompts(), dim=-1)
+    sim = p[0] @ p[1]
+    return torch.relu(sim - margin).pow(2)
 
 
 def auroc(labels: np.ndarray, scores: np.ndarray) -> float | None:
@@ -426,10 +492,206 @@ def train_token_ablation(name: str, token_sets: list[torch.Tensor], metas: list[
     return write_outputs(name, model, history, best, scores, top_vec, y_all.numpy().astype(np.int64), metas, out_dir, args, train_idx, val_idx, openset_idx)
 
 
-def write_outputs(name, model, history, best, scores, top_vec, y_np, metas, out_dir, args, train_idx, val_idx, openset_idx):
+def train_prompt_alignment(name: str, x: torch.Tensor, metas: list[dict], out_dir: Path, args) -> dict:
+    y_all = torch.tensor([1 if m["label"] in TRAIN_CATEGORIES else 0 for m in metas], dtype=torch.long)
+    supervised = torch.tensor([m["label"] in TRAIN_CATEGORIES or m["label"] == "normal" for m in metas], dtype=torch.bool)
+    train_idx = [i for i, m in enumerate(metas) if supervised[i] and m["split"] == "train"]
+    val_idx = [i for i, m in enumerate(metas) if supervised[i] and m["split"] == "val"]
+    openset_idx = [i for i, m in enumerate(metas) if m["label"] == "R06" or m["split"] == "openset"]
+
+    device = torch.device(args.train_device)
+    model = PromptAlignmentScorer(x.shape[1], args.embed_dim, args.tau).to(device)
+    opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    loader = DataLoader(TensorDataset(x[train_idx].float(), y_all[train_idx]), batch_size=args.batch_size, shuffle=True)
+    history = []
+    best = {"val_balanced_accuracy": -1.0, "epoch": -1}
+    best_state = None
+    for epoch in range(1, args.epochs + 1):
+        model.train()
+        totals = Counter()
+        for xb, yb in loader:
+            xb = xb.to(device)
+            yb = yb.to(device)
+            _, logits = model(xb)
+            ce = F.cross_entropy(logits, yb)
+            sep = prompt_separation_loss(model, args.sep_margin)
+            loss = ce + args.lambda_sep * sep
+            opt.zero_grad(set_to_none=True)
+            loss.backward()
+            opt.step()
+            totals["loss"] += float(loss.item()) * len(xb)
+            totals["ce"] += float(ce.item()) * len(xb)
+            totals["sep"] += float(sep.item()) * len(xb)
+            totals["n"] += len(xb)
+        model.eval()
+        with torch.no_grad():
+            val_scores, _ = model(x[val_idx].float().to(device))
+            val_scores = val_scores.cpu().numpy()
+        val_y = y_all[val_idx].numpy().astype(np.int64)
+        val_metas = [metas[i] for i in val_idx]
+        vm = binary_metrics(val_y, val_scores, val_metas, args.threshold) if val_idx else {}
+        bal = 0.5 * (vm.get("anomaly_recall", 0.0) + vm.get("normal_true_negative_rate", 0.0))
+        row = {
+            "epoch": epoch,
+            "loss": totals["loss"] / max(1, totals["n"]),
+            "ce": totals["ce"] / max(1, totals["n"]),
+            "sep": totals["sep"] / max(1, totals["n"]),
+            "val_balanced_accuracy": bal,
+            "val_anomaly_recall": vm.get("anomaly_recall", 0.0),
+            "val_normal_fpr": vm.get("normal_false_positive_rate", 0.0),
+            "val_auroc": vm.get("auroc"),
+            "val_event_top3_recall": vm.get("event_top3_recall", 0.0),
+        }
+        history.append(row)
+        if bal > best["val_balanced_accuracy"]:
+            best = dict(row)
+            best_state = {k: v.detach().cpu() for k, v in model.state_dict().items()}
+        print(f"{name} epoch {epoch:03d}: {row}", flush=True)
+
+    if best_state:
+        model.load_state_dict(best_state)
+    model.eval()
+    with torch.no_grad():
+        scores, logits = model(x.float().to(device))
+        scores = scores.cpu().numpy()
+        top_prompt = logits.argmax(dim=1).cpu().numpy()
+    return write_outputs(
+        name,
+        model,
+        history,
+        best,
+        scores,
+        top_prompt,
+        y_all.numpy().astype(np.int64),
+        metas,
+        out_dir,
+        args,
+        train_idx,
+        val_idx,
+        openset_idx,
+        strategy="prompt_alignment_normal_anomaly",
+        category_prefix="prompt",
+        top_key="top_prompt",
+    )
+
+
+def train_token_prompt_alignment(name: str, token_sets: list[torch.Tensor], metas: list[dict], out_dir: Path, args) -> dict:
+    y_all = torch.tensor([1 if m["label"] in TRAIN_CATEGORIES else 0 for m in metas], dtype=torch.long)
+    supervised = torch.tensor([m["label"] in TRAIN_CATEGORIES or m["label"] == "normal" for m in metas], dtype=torch.bool)
+    train_idx = [i for i, m in enumerate(metas) if supervised[i] and m["split"] == "train"]
+    val_idx = [i for i, m in enumerate(metas) if supervised[i] and m["split"] == "val"]
+    openset_idx = [i for i, m in enumerate(metas) if m["label"] == "R06" or m["split"] == "openset"]
+    device = torch.device(args.train_device)
+    model = TokenPromptAlignmentScorer(
+        token_sets[0].shape[1],
+        args.embed_dim,
+        args.tau,
+        args.token_pooling,
+        args.token_topk_ratio,
+        args.token_lme_alpha,
+    ).to(device)
+    opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    rng = random.Random(args.seed)
+
+    def predict(indices: list[int]) -> tuple[np.ndarray, np.ndarray]:
+        scores = []
+        top_prompt = []
+        model.eval()
+        with torch.no_grad():
+            for i in indices:
+                s, logits = model.forward_one(token_sets[i].to(device))
+                scores.append(s.detach().cpu())
+                top_prompt.append(int(logits.mean(dim=0).argmax().detach().cpu()))
+        return torch.stack(scores).numpy() if scores else np.zeros((0,), dtype=np.float32), np.asarray(top_prompt)
+
+    history = []
+    best = {"val_balanced_accuracy": -1.0, "epoch": -1}
+    best_state = None
+    for epoch in range(1, args.epochs + 1):
+        order = train_idx[:]
+        rng.shuffle(order)
+        model.train()
+        totals = Counter()
+        for i in order:
+            yb = y_all[i].to(device)
+            score, _ = model.forward_one(token_sets[i].to(device))
+            bce = F.binary_cross_entropy(score.clamp(1e-6, 1 - 1e-6)[None], yb.float()[None])
+            sep = prompt_separation_loss(model, args.sep_margin)
+            loss = bce + args.lambda_sep * sep
+            opt.zero_grad(set_to_none=True)
+            loss.backward()
+            opt.step()
+            totals["loss"] += float(loss.item())
+            totals["bce"] += float(bce.item())
+            totals["sep"] += float(sep.item())
+            totals["n"] += 1
+        val_scores, _ = predict(val_idx)
+        val_y = y_all[val_idx].numpy().astype(np.int64)
+        val_metas = [metas[i] for i in val_idx]
+        vm = binary_metrics(val_y, val_scores, val_metas, args.threshold) if val_idx else {}
+        bal = 0.5 * (vm.get("anomaly_recall", 0.0) + vm.get("normal_true_negative_rate", 0.0))
+        row = {
+            "epoch": epoch,
+            "loss": totals["loss"] / max(1, totals["n"]),
+            "bce": totals["bce"] / max(1, totals["n"]),
+            "sep": totals["sep"] / max(1, totals["n"]),
+            "val_balanced_accuracy": bal,
+            "val_anomaly_recall": vm.get("anomaly_recall", 0.0),
+            "val_normal_fpr": vm.get("normal_false_positive_rate", 0.0),
+            "val_auroc": vm.get("auroc"),
+            "val_event_top3_recall": vm.get("event_top3_recall", 0.0),
+        }
+        history.append(row)
+        if bal > best["val_balanced_accuracy"]:
+            best = dict(row)
+            best_state = {k: v.detach().cpu() for k, v in model.state_dict().items()}
+        print(f"{name} epoch {epoch:03d}: {row}", flush=True)
+
+    if best_state:
+        model.load_state_dict(best_state)
+    all_idx = list(range(len(metas)))
+    scores, top_prompt = predict(all_idx)
+    return write_outputs(
+        name,
+        model,
+        history,
+        best,
+        scores,
+        top_prompt,
+        y_all.numpy().astype(np.int64),
+        metas,
+        out_dir,
+        args,
+        train_idx,
+        val_idx,
+        openset_idx,
+        strategy="token_prompt_alignment_normal_anomaly",
+        category_prefix="prompt",
+        top_key="top_prompt",
+    )
+
+
+def write_outputs(
+    name,
+    model,
+    history,
+    best,
+    scores,
+    top_vec,
+    y_np,
+    metas,
+    out_dir,
+    args,
+    train_idx,
+    val_idx,
+    openset_idx,
+    strategy="anomaly_vectors_only",
+    category_prefix="anomaly_vector",
+    top_key="top_anomaly_vector",
+):
     ab_dir = out_dir / name
     ab_dir.mkdir(parents=True, exist_ok=True)
-    torch.save({"state_dict": model.state_dict(), "args": vars(args), "strategy": "anomaly_vectors_only"}, ab_dir / "best_model.pt")
+    torch.save({"state_dict": model.state_dict(), "args": vars(args), "strategy": strategy}, ab_dir / "best_model.pt")
     with (ab_dir / "history.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(history[0].keys()))
         writer.writeheader()
@@ -443,14 +705,14 @@ def write_outputs(name, model, history, best, scores, top_vec, y_np, metas, out_
                 "true_label": str(meta["label"]),
                 "pred_label": pred,
                 "object_anomaly_score": float(s),
-                "category": f"anomaly_vector_{int(v)}",
-                "top_anomaly_vector": int(v),
+                "category": f"{category_prefix}_{int(v)}",
+                top_key: int(v),
                 "threshold": args.threshold,
             }
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
     metrics = {
         "ablation": name,
-        "strategy": "anomaly_vectors_only_low_score_is_normal",
+        "strategy": f"{strategy}_low_score_is_normal",
         "anomaly_vectors": args.anomaly_vectors,
         "best_row": best,
         "train": binary_metrics(y_np[train_idx], scores[train_idx], [metas[i] for i in train_idx], args.threshold),
@@ -473,9 +735,15 @@ def write_report(out_dir: Path, selection: dict, sample_summary: dict, metrics: 
     lines = [
         "# Object-Level Anomaly Vector Training",
         "",
-        "本实验改为只训练 anomaly vectors。Normal 不再作为显式 prototype；对象异常分数低即判为 normal。",
+        "本实验冻结 Qwen3-VL 视觉 token 与 bbox-to-token 绑定规则，只训练对象级异常打分头。",
+        "",
+        "当前报告同时比较两条路线：",
+        "",
+        "1. anomaly vector bank：object embedding 与多个可学习 anomaly vectors 对齐；normal 不作为显式 prototype，低异常证据即判为 normal。",
+        "2. prompt alignment：object embedding 与一个 normal prompt、一个 anomaly prompt 对齐，直接用 P(anomaly) 作为 object anomaly score。",
         "",
         f"- anomaly_vectors: `{args.anomaly_vectors}`",
+        "- prompt_alignment_prompts: `normal/anomaly`",
         f"- threshold: `{args.threshold}`",
         f"- selected train/val/openset packages: `{len(selection['train'])}/{len(selection['val'])}/{len(selection['openset'])}`",
         "",
@@ -607,8 +875,11 @@ def main():
     metrics = []
     metrics.append(train_feature_ablation("anomaly_vector_visual_only", visual.float(), metas, data_out, args))
     metrics.append(train_feature_ablation("anomaly_vector_visual_motion", torch.cat([visual.float(), motion.float()], dim=1), metas, data_out, args))
+    metrics.append(train_prompt_alignment("prompt_alignment_visual_only", visual.float(), metas, data_out, args))
+    metrics.append(train_prompt_alignment("prompt_alignment_visual_motion", torch.cat([visual.float(), motion.float()], dim=1), metas, data_out, args))
     if args.run_token_evidence:
         metrics.append(train_token_ablation(f"anomaly_vector_token_{args.token_pooling}", token_sets, metas, data_out, args))
+        metrics.append(train_token_prompt_alignment(f"prompt_alignment_token_{args.token_pooling}", token_sets, metas, data_out, args))
 
     (data_out / "metrics.json").write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
     for item in metrics:
