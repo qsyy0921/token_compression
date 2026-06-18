@@ -1,0 +1,113 @@
+{
+  "ablation": "anomaly_vector_visual_only",
+  "strategy": "anomaly_vectors_only_low_score_is_normal",
+  "anomaly_vectors": 8,
+  "best_row": {
+    "epoch": 50,
+    "loss": 0.12294454687320581,
+    "bce": 0.1225049144790306,
+    "sep": 0.004396336029407444,
+    "val_balanced_accuracy": 0.96875,
+    "val_anomaly_recall": 0.9375,
+    "val_normal_fpr": 0.0,
+    "val_auroc": 0.97265625,
+    "val_event_top3_recall": 1.0
+  },
+  "train": {
+    "n": 143,
+    "threshold": 0.5,
+    "accuracy": 0.965034965034965,
+    "anomaly_recall": 0.9305555555555556,
+    "normal_false_positive_rate": 0.0,
+    "normal_true_negative_rate": 1.0,
+    "auroc": 0.9980438184663537,
+    "per_label": {
+      "normal": {
+        "count": 71,
+        "mean_score": 0.012909564189612865,
+        "pred_anomaly_rate": 0.0
+      },
+      "T01": {
+        "count": 10,
+        "mean_score": 0.9980367422103882,
+        "pred_anomaly_rate": 1.0
+      },
+      "T02": {
+        "count": 15,
+        "mean_score": 0.9987090229988098,
+        "pred_anomaly_rate": 1.0
+      },
+      "T03": {
+        "count": 14,
+        "mean_score": 0.9990015625953674,
+        "pred_anomaly_rate": 1.0
+      },
+      "T04": {
+        "count": 26,
+        "mean_score": 0.7914273738861084,
+        "pred_anomaly_rate": 0.8076923076923077
+      },
+      "T05": {
+        "count": 7,
+        "mean_score": 0.995536744594574,
+        "pred_anomaly_rate": 1.0
+      }
+    },
+    "event_top1_recall": 1.0,
+    "event_top3_recall": 1.0,
+    "event_ranking_count": 34
+  },
+  "val": {
+    "n": 32,
+    "threshold": 0.5,
+    "accuracy": 0.96875,
+    "anomaly_recall": 0.9375,
+    "normal_false_positive_rate": 0.0,
+    "normal_true_negative_rate": 1.0,
+    "auroc": 0.97265625,
+    "per_label": {
+      "normal": {
+        "count": 16,
+        "mean_score": 0.055831942707300186,
+        "pred_anomaly_rate": 0.0
+      },
+      "T01": {
+        "count": 2,
+        "mean_score": 0.9991745948791504,
+        "pred_anomaly_rate": 1.0
+      },
+      "T02": {
+        "count": 4,
+        "mean_score": 0.9991585612297058,
+        "pred_anomaly_rate": 1.0
+      },
+      "T03": {
+        "count": 3,
+        "mean_score": 0.9989818930625916,
+        "pred_anomaly_rate": 1.0
+      },
+      "T04": {
+        "count": 5,
+        "mean_score": 0.7995734810829163,
+        "pred_anomaly_rate": 0.8
+      },
+      "T05": {
+        "count": 2,
+        "mean_score": 0.9974707365036011,
+        "pred_anomaly_rate": 1.0
+      }
+    },
+    "event_top1_recall": 1.0,
+    "event_top3_recall": 1.0,
+    "event_ranking_count": 10
+  },
+  "openset": {
+    "n": 4,
+    "mean_anomaly_score": 0.2552870512008667,
+    "max_anomaly_score": 0.99906986951828,
+    "min_anomaly_score": 0.0042161764577031136
+  },
+  "num_train": 143,
+  "num_val": 32,
+  "num_openset": 4
+}

@@ -1,0 +1,421 @@
+{
+  "train": [
+    {
+      "package_id": "Avenue_21",
+      "dataset": "avenue",
+      "frames": 76,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/avenue/Avenue_21"
+    },
+    {
+      "package_id": "ShanghaiTech_06_0145",
+      "dataset": "shanghaitech",
+      "frames": 217,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_06_0145"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0132",
+      "dataset": "shanghaitech",
+      "frames": 265,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0132"
+    },
+    {
+      "package_id": "UCF-Crime_Assault_Assault039_x264",
+      "dataset": "ucf_crime",
+      "frames": 295,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/ucf_crime/UCF-Crime_Assault_Assault039_x264"
+    },
+    {
+      "package_id": "ShanghaiTech_05_0017",
+      "dataset": "shanghaitech",
+      "frames": 433,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_05_0017"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0055",
+      "dataset": "shanghaitech",
+      "frames": 313,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0055"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0162",
+      "dataset": "shanghaitech",
+      "frames": 193,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0162"
+    },
+    {
+      "package_id": "NWPU_D068_02",
+      "dataset": "nwpu",
+      "frames": 301,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/nwpu/NWPU_D068_02"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0052",
+      "dataset": "shanghaitech",
+      "frames": 337,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0052"
+    },
+    {
+      "package_id": "ShanghaiTech_09_0057",
+      "dataset": "shanghaitech",
+      "frames": 361,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_09_0057"
+    },
+    {
+      "package_id": "Avenue_18",
+      "dataset": "avenue",
+      "frames": 294,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/avenue/Avenue_18"
+    },
+    {
+      "package_id": "ShanghaiTech_12_0173",
+      "dataset": "shanghaitech",
+      "frames": 217,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_12_0173"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0130",
+      "dataset": "shanghaitech",
+      "frames": 337,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0130"
+    },
+    {
+      "package_id": "ShanghaiTech_07_0048",
+      "dataset": "shanghaitech",
+      "frames": 241,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_07_0048"
+    },
+    {
+      "package_id": "ShanghaiTech_07_0008",
+      "dataset": "shanghaitech",
+      "frames": 457,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_07_0008"
+    },
+    {
+      "package_id": "ShanghaiTech_07_0009",
+      "dataset": "shanghaitech",
+      "frames": 313,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_07_0009"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0133",
+      "dataset": "shanghaitech",
+      "frames": 217,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0133"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0016",
+      "dataset": "shanghaitech",
+      "frames": 337,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0016"
+    },
+    {
+      "package_id": "ShanghaiTech_07_0006",
+      "dataset": "shanghaitech",
+      "frames": 385,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_07_0006"
+    },
+    {
+      "package_id": "Avenue_20",
+      "dataset": "avenue",
+      "frames": 273,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/avenue/Avenue_20"
+    },
+    {
+      "package_id": "Avenue_08",
+      "dataset": "avenue",
+      "frames": 36,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/avenue/Avenue_08"
+    },
+    {
+      "package_id": "ShanghaiTech_06_0153",
+      "dataset": "shanghaitech",
+      "frames": 217,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_06_0153"
+    },
+    {
+      "package_id": "ShanghaiTech_12_0148",
+      "dataset": "shanghaitech",
+      "frames": 313,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_12_0148"
+    },
+    {
+      "package_id": "NWPU_D094_01",
+      "dataset": "nwpu",
+      "frames": 401,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/nwpu/NWPU_D094_01"
+    },
+    {
+      "package_id": "ShanghaiTech_03_0031",
+      "dataset": "shanghaitech",
+      "frames": 529,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_03_0031"
+    },
+    {
+      "package_id": "ShanghaiTech_03_0041",
+      "dataset": "shanghaitech",
+      "frames": 457,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_03_0041"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0014",
+      "dataset": "shanghaitech",
+      "frames": 265,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0014"
+    },
+    {
+      "package_id": "NWPU_D047_06",
+      "dataset": "nwpu",
+      "frames": 401,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/nwpu/NWPU_D047_06"
+    },
+    {
+      "package_id": "ShanghaiTech_03_0033",
+      "dataset": "shanghaitech",
+      "frames": 313,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_03_0033"
+    },
+    {
+      "package_id": "ShanghaiTech_08_0079",
+      "dataset": "shanghaitech",
+      "frames": 241,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_08_0079"
+    },
+    {
+      "package_id": "ShanghaiTech_03_0035",
+      "dataset": "shanghaitech",
+      "frames": 385,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_03_0035"
+    },
+    {
+      "package_id": "ShanghaiTech_06_0144",
+      "dataset": "shanghaitech",
+      "frames": 241,
+      "labels": [
+        "T02",
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_06_0144"
+    }
+  ],
+  "val": [
+    {
+      "package_id": "ShanghaiTech_01_0027",
+      "dataset": "shanghaitech",
+      "frames": 409,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0027"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0163",
+      "dataset": "shanghaitech",
+      "frames": 265,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0163"
+    },
+    {
+      "package_id": "ShanghaiTech_06_0147",
+      "dataset": "shanghaitech",
+      "frames": 265,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_06_0147"
+    },
+    {
+      "package_id": "ShanghaiTech_05_0024",
+      "dataset": "shanghaitech",
+      "frames": 433,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_05_0024"
+    },
+    {
+      "package_id": "ShanghaiTech_03_0039",
+      "dataset": "shanghaitech",
+      "frames": 481,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_03_0039"
+    },
+    {
+      "package_id": "ShanghaiTech_07_0007",
+      "dataset": "shanghaitech",
+      "frames": 481,
+      "labels": [
+        "T01"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_07_0007"
+    },
+    {
+      "package_id": "ShanghaiTech_01_0139",
+      "dataset": "shanghaitech",
+      "frames": 217,
+      "labels": [
+        "T02"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/shanghaitech/ShanghaiTech_01_0139"
+    },
+    {
+      "package_id": "NWPU_D043_02",
+      "dataset": "nwpu",
+      "frames": 476,
+      "labels": [
+        "T03"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/nwpu/NWPU_D043_02"
+    },
+    {
+      "package_id": "UCF-Crime_Assault_Assault024_x264",
+      "dataset": "ucf_crime",
+      "frames": 446,
+      "labels": [
+        "T04"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/ucf_crime/UCF-Crime_Assault_Assault024_x264"
+    },
+    {
+      "package_id": "Avenue_11",
+      "dataset": "avenue",
+      "frames": 472,
+      "labels": [
+        "T05"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/avenue/Avenue_11"
+    }
+  ],
+  "openset": [
+    {
+      "package_id": "NWPU_D003_05",
+      "dataset": "nwpu",
+      "frames": 2101,
+      "labels": [
+        "R06"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/nwpu/NWPU_D003_05"
+    },
+    {
+      "package_id": "NWPU_D038_02",
+      "dataset": "nwpu",
+      "frames": 1201,
+      "labels": [
+        "R06"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/nwpu/NWPU_D038_02"
+    },
+    {
+      "package_id": "NWPU_D013_01",
+      "dataset": "nwpu",
+      "frames": 2851,
+      "labels": [
+        "R06"
+      ],
+      "path": "/home/expand_disk/data_repository/mfl/token_compression/20260613_data/packages/nwpu/NWPU_D013_01"
+    }
+  ],
+  "selection_params": {
+    "train_count": 32,
+    "val_count": 10,
+    "openset_count": 3,
+    "max_frames": 1600,
+    "seed": 20260614
+  }
+}
